@@ -1,6 +1,14 @@
 # create statistics of corpuses
 ###################
 
+subsample <- function(rawdata, percent) {
+  len <- length(rawdata)
+  idx <- rbinom(percent*len, len, prob=.5 )
+  return(rawdata[idx])
+}
+
+
+
 #load("rawdata.RData")
 
 # if no variables "blogs", "news", and "twits",
@@ -14,3 +22,12 @@ par(mfcol=c(3,1))
 hist(twits.len, breaks=50)
 hist(blogs.len, breaks=50)
 hist(news.len, breaks=50)
+
+rec.count <- length(blogs)+length(news)+length(twits)
+
+sample.pct <- .001
+s.twits <- subsample(twits, sample.pct)
+s.blogs <- subsample(blogs, sample.pct)
+s.news <- subsample(news, sample.pct)
+
+save(s.twits, s.blogs, s.news, file="sampled data.RData")
