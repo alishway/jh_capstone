@@ -1,11 +1,7 @@
 # create subsample of corpuses
 ###################
 
-subsample <- function(rawdata, percent) {
-  len <- length(rawdata)
-  idx <- rbinom(percent*len, len, prob=.5 )
-  return(rawdata[idx])
-}
+require(JHCap_lib)
 
 
 #load("rawdata.RData")
