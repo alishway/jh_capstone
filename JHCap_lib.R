@@ -24,7 +24,8 @@ corpStats <- function (rawchar) {
   chars <- nchar(rawchar)
   #  words <- length(rawchar)
   return(data.frame(
-    lines = length(rawchar),  
+    lines = length(rawchar),
+    chars = sum(chars),
     ave.char = mean(chars),
     var.char = var(chars)
   ))
