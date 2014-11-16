@@ -1,16 +1,21 @@
+####
+# load term document matrices to calculate its sorted term frequency
+####
+
 outpath <- "rawdata"
 
 all.stats <- data.frame(sample.pct=numeric(),
-                       lines=numeric(), chars=numeric(),
-                       ave.char=numeric(), var.char=numeric(),
-                       terms=numeric(), unique.terms=numeric(),
-                       rough.words=numeric(), rough.unique.words=numeric(),
-                       bigrams=numeric(), unique.bigrams=numeric(),
-                       trigrams=numeric(), unique.trigrams=numeric()
-                        )
+                        lines=numeric(), chars=numeric(),
+                        ave.char=numeric(), var.char=numeric(),
+                        terms=numeric(), unique.terms=numeric(),
+                        rough.words=numeric(), rough.unique.words=numeric(),
+                        bigrams=numeric(), unique.bigrams=numeric(),
+                        trigrams=numeric(), unique.trigrams=numeric()
+)
 x <- .002
 
-input.idx <- c(seq(.002, .022, .002), seq(.03, .15, .01))
+#input.idx <- c(seq(.002, .022, .002), seq(.03, .15, .01))
+input.idx <- seq(.002, .008, .002)
 
 for (x in input.idx) {
   print(x)
@@ -37,7 +42,7 @@ for (x in input.idx) {
   print(proc.time()-ptm)
   
   sample.pct <- x
-
+  
   rw <- unlist(strsplit(s, " "))
   rough.words <- length(rw)
   rough.unique.words <- length(unique(rw))
@@ -48,6 +53,6 @@ for (x in input.idx) {
   print(proc.time()-ptm)
   print("done")
 }
-  
+
 
 save(all.stats, file="allstats.RData")

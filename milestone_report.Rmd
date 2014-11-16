@@ -1,0 +1,33 @@
+---
+title: "Milestone Report - Coursera Data Science Swiftkey Capstone Project"
+author: "Ricky Purnomo"
+date: "Sunday, November 16, 2014"
+output: html_document
+---
+
+```{r setoptions, echo=FALSE}
+opts_chunk$set(echo = FALSE, results = "hide")
+```
+
+This report aims to illustrate the foundation in preparation to create a word prediction algorithm as part of the Coursera Data Science capstone project. 
+
+The motivation for this project is to: 
+
+1. Demonstrate that you've downloaded the data and have successfully loaded it in.
+2. Create a basic report of summary statistics about the data sets.
+3. Report any interesting findings that you amassed so far.
+4. Get feedback on your plans for creating a prediction algorithm and Shiny app. 
+
+## 
+
+```{r}
+summary(cars)
+```
+
+The number of words available from the collection for prediction is huge and may be too much for quick processing. Fortunately [ bla bla ] As shown below, a small number of unique terms are needed to represent majority of the words in a whole set.
+
+```{r, echo=FALSE}
+plot(cars)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
