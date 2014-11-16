@@ -21,45 +21,21 @@ hashtag.pattern <- "#[0-9a-zA-Z]+"
   s <- c(twits, blogs, news)
   print(proc.time()-ptm)
 
+  full.corp.stats <- corpStats(s)
+  twit.stats <- corpStats(twits)
+  news.stats <- corpStats(news)
+  blog.stats <- corpStats(blogs)
+  save(full.corp.stats, twit.stats, news.stats, blog.stats,
+       file=file.path(subdir, "stats.RData"))
+  print(proc.time()-ptm)
+
   #cleanup unwanted words e.g. hashtag
   s.corp <- VCorpus(VectorSource(gsub(hashtag.pattern, "", s)))
   print(proc.time()-ptm)
 
-  corp.stats <- corpStats(s)
-  
   save(s, file = file.path(subdir, "rawchar.RData"))
-  rm(s)  # immediate remove to save memory
-  print(proc.time()-ptm)
+    print(proc.time()-ptm)
 
-  corp <- cleanCorp(s.corp)
-  rm(s.corp)  # immediate remove to save memory
-  print(proc.time()-ptm)
-  
-  tdm <- TermDocumentMatrix(corp)
-
-
-#  m <- as.matrix(tdm)
-
-#  capture.output(terms <- sort(rowSums(inspect(tdm[, dimnames(tdm)$Docs])), decreasing=TRUE))
-#  term.freq <- data.frame(term = names(terms),freq=terms)
-#  term2.freq <- countTermFreq(tdm2)
-#  term3.freq <- countTermFreq(tdm3)
-
-  print(proc.time()-ptm)
-
-#  save(corp.stats, terms, file = file.path(subdir, "stats.RData"))
-  save(corp.stats, file = file.path(subdir, "stats.RData"))
-  save(corp, file = file.path(subdir, "cleaned_corpus.RData"))
-  save(tdm, file = file.path(subdir, "tdm_n1.RData"))
-  rm(tdm)  # immediate remove to save memory
-
-#  tdm2 <- TermDocumentMatrix(corp, control = list(tokenize = BigramTokenizer))
-#  save(tdm2, file = file.path(subdir, "tdm_n2.RData"))
-#  rm(tdm2)  # immediate remove to save memory
-
-#  tdm3 <- TermDocumentMatrix(corp, control = list(tokenize = TrigramTokenizer))
-#  save(tdm3, file = file.path(subdir, "tdm_n3.RData"))
-#  rm(tdm3)  # immediate remove to save memory
-  
+  save(s.corp, file = file.path(subdir, "cleaned_corpus.RData")
   print(proc.time()-ptm)
   print("complete")

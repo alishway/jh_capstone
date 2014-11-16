@@ -2,6 +2,7 @@
 
 require(tm)
 require(RWeka)
+require(Matrix)
 
 ####
 # create a corpus from raw character afer removing 
@@ -22,12 +23,19 @@ CreateCorp <- function (chardata, tag_orig) {
 ####
 corpStats <- function (rawchar) {
   chars <- nchar(rawchar)
-  #  words <- length(rawchar)
+  rw <- unlist(strsplit(rawchar, " "))
+  rough.words <- length(rw)
+  rough.unique.words <- length(unique(rw))
+  
   return(data.frame(
     lines = length(rawchar),
     chars = sum(chars),
     ave.char = mean(chars),
-    var.char = var(chars)
+    var.char = var(chars),
+    rough.words = length(rw),
+    rough.unique.words = length(unique(rw)),
+    ratio.unique.words = rough.unique.words/rough.words,
+    ave.rough.words = rough.words/length(rawchar)
   ))
 }
 
@@ -59,8 +67,7 @@ cleanCorp <- function (corp) {
 # count term frequencies for a particular term document matrix
 ####
 countTermFreq <- function(tdm) {
-  m <- as.matrix(tdm)
-  terms <- sort(rowSums(m),decreasing=TRUE)
-  term.freq <- data.frame(term = names(terms),freq=terms)
+  m <- sparseMatrix(i=tdm$i, j=tdm$j, x=tdm$v)
+  term.freq <- sort(rowSums(m),decreasing=TRUE)
   return(term.freq)
 }

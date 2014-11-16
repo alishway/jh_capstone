@@ -1,33 +1,101 @@
 ---
-title: "Milestone Report - Coursera Data Science Swiftkey Capstone Project"
+title: "Milestone Report for Coursera Data Science Swiftkey Capstone Project"
 author: "Ricky Purnomo"
 date: "Sunday, November 16, 2014"
 output: html_document
 ---
 
-```{r setoptions, echo=FALSE}
-opts_chunk$set(echo = FALSE, results = "hide")
+```{r setoptions, echo=FALSE, message=FALSE}
+require(knitr)
+require(xtable)
+opts_chunk$set(echo=FALSE, message=FALSE)
 ```
 
 This report aims to illustrate the foundation in preparation to create a word prediction algorithm as part of the Coursera Data Science capstone project. 
 
-The motivation for this project is to: 
+## Project Overview
 
-1. Demonstrate that you've downloaded the data and have successfully loaded it in.
-2. Create a basic report of summary statistics about the data sets.
-3. Report any interesting findings that you amassed so far.
-4. Get feedback on your plans for creating a prediction algorithm and Shiny app. 
+A collection of about 4.2 million English texts from blogs, news, and twitter have been made available as a reference set to "train" a word prediction application. The application is supposed to suggest a meaningful word that will follow a phrase / word that the user keys in.
 
-## 
+The approach I intend to take is to predict the word by calculating the probability of a pair of words (bigram), based on how often that bigram appears and how often the words constituting the bigram appear in the training reference. 
+
+By taking this approach, in essence the prediction is possible as long as we can count and process the frequency of all the words and all the pair of words. The more words we have, the potentially the more accurate it can be.
+
+
+## Preview of Reference Data
+
+A summary of the statistics of the reference data, broken down by the source, is as below:
+
+```{r, results='asis'}
+load("rawdata/full/stats.RData")
+comp.stats <- cbind(rbind(blog.stats, news.stats, twit.stats), 
+                    source=c("Blog", "News", "Twitter"))
+names(comp.stats) <- c("Total Lines", "Total Characters",
+                       "Average Characters/Line", "Var.Char",
+                       'Total "Rough" Words',
+                       'Total unique "Rough" Words',
+                       "ratio unique.rough",
+                       'Average"Rough" Words per Line', "Source" )
+print(xtable(comp.stats[, c(9, 1:3, 5, 8, 6)]), type="html",
+      label=)
+
+```
+
+The statistics above are derived from the raw data. The actual application requires cleaning the data to make it more sensible for prediction. This may include removing punctuations and extraneous non-English characters, removing hashtags, etc. Hence the term "rough" words above, as opposed to actual term/words that have been cleaned for use by the prediction engine.
+
+It's worth noting that there are more than 30 millions "rough" words from each source of text, but these are often repeated words. Taking away the repetitions, there are only around 1 million unique words in each text source. It's particularly interesting to see that News has the least varied vocabulary i.e. fewest unique words; Twitter on the other hand has the fewest total words but the most number of unique words.
+
+The sheer amount of data means processing e.g. data cleaning or prediction calculation, would take too much resource and time. Therefore it is better to process on a sampling of instead of the whole data. The question is, how and how many to sample.
+
+
+## Sampling
+The chart below shows the distribution of the texts for each text source.
 
 ```{r}
-summary(cars)
+load("rawdata/full/hist.RData")
+
+par(mfrow=c(3,1))
+
+plot(hb, main="Number of blog texts by character count",
+     xlab="Number of characters in text", ylab="Number of texts",
+     xlim=c(0,1000)
+     )
+
+plot(hn, main="Number of news texts by character count",
+     xlab="Number of characters in text", ylab="Number of texts",
+     xlim=c(0,1000)
+     )
+
+plot(ht, main="Number of Twitter texts by character count",
+     xlab="Number of characters in text", ylab="Number of texts",
+     xlim=c(0,1000)
+     )
 ```
 
-The number of words available from the collection for prediction is huge and may be too much for quick processing. Fortunately [ bla bla ] As shown below, a small number of unique terms are needed to represent majority of the words in a whole set.
+As can be seen, the nature of the texts are very different. Twitter text by definition is short and almost all are below 140 characters.
 
-```{r, echo=FALSE}
-plot(cars)
+To preserve the different nature, sampling was done proportionally, i.e. a sample of 5% of the data will be a combination of 5% of blogs, news, and twits respectively.
+
+A range of sampling percentage was tested to see the effect on processing requirement, from 0.2% to 15% of total texts.
+
+
+## Sparsity
+
+Even samples of the reference text still are still large and resource-intensive for processing. Fortunately, as noted earlier when comparing number of unique "rough" words to total number of words, in most cases many words are "sparse", i.e. rarely used and may appear only once or twice.
+
+The chart below shows the coverage of cleaned words i.e. how many unique clean words are needed to count x% of all cleaned words in the sample. The chart shows comparison of coverage in different sample sizes.
+
+```{r}
+source('~/GitHub/jh_capstone/plot_tf.R')
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+As seen, 50% coverage of all words can typically be achieved by fewer than the top 3% most requent words for all kind. However, for 90% coverage, increase in sample size makes a big difference. At 0.2% of total size (i.e. around 8400 lines of text), 90% coverage is provided by the top 26.62% unique words. However at 10% sample threshold (about 427k lines), 90% coverage requires only the top 2.79% words. This justifies removal of sparse words from further processing.
+
+As observed from the chart, taking a threshold below the "elbow" in the chart gives a very good coverage ratio. It is also worth noticing the diminishing benefit of taking larger sampe sizes: 0.8% increase of sample size (from .2% to 1%) initially reduces the percentage of top words needed for 90% coverage by around 15%. However subsequent increase of sample size by 9% (from 1% to 10%) only reduce the percentage of top words needed by around 8.5%.
+
+
+## Next Steps
+
+The eventual aim is to derive a compact table of frequency count for all terms (single words and word pairs) small enough to be loaded into the Shiny server. 
+
+The immediate next steps would be to run simulations to determine the threshold both on the ideal reference sample size, and the % of terms in the sample to be retained for prediction. 
