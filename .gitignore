@@ -14,6 +14,7 @@
 # specific to jh_capstone repository
 rawdata/
 rawdata.RData
+_milestone_report/
 
 #### standard from octocat
 

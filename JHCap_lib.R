@@ -61,11 +61,11 @@ subsample <- function(rawdata, percent=.1, seed=17071978) {
 # Clean up a corpus
 ####
 cleanCorp <- function (corp) {
-  corp <- tm_map(corp, stripWhitespace)
   corp <- tm_map(corp, removeNumbers)
-  corp <- tm_map(corp, removePunctuation)
+  corp <- tm_map(corp, removePunctuation,
+                 preserve_intra_word_dashes=TRUE)
   corp <- tm_map(corp, content_transformer(tolower))
-  corp <- tm_map(corp, stemDocument)
+  corp <- tm_map(corp, stripWhitespace)
   return(corp)
 }
 
