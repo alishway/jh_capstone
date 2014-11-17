@@ -3,6 +3,13 @@
 require(tm)
 require(RWeka)
 require(Matrix)
+require(slam)
+
+outpath <- "rawdata"
+
+UnigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 1, max = 1))
+BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
+TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
 
 ####
 # create a corpus from raw character afer removing 
@@ -64,10 +71,33 @@ cleanCorp <- function (corp) {
 
 
 ####
-# count term frequencies for a particular term document matrix
+# count term frequencies for a particular term document matrix and sort
 ####
 countTermFreq <- function(tdm) {
-  m <- sparseMatrix(i=tdm$i, j=tdm$j, x=tdm$v)
-  term.freq <- sort(rowSums(m),decreasing=TRUE)
+  term.freq <- sort(row_sums(tdm),decreasing=TRUE)
   return(term.freq)
+}
+
+
+
+####
+# load all data from a particular folder 
+####
+loadData <- function(pathname) {
+  subdir <- file.path(outpath, pathname)
+  load(file.path(subdir, "rawchar.RData"), .GlobalEnv)
+  load(file.path(subdir, "stats.RData"), .GlobalEnv)
+  load(file.path(subdir, "cleaned_corpus.RData"), .GlobalEnv)
+  load(file.path(subdir, "tdm_n1.RData"), .GlobalEnv)
+  load(file.path(subdir, "tf.RData"), .GlobalEnv)
+}
+
+
+####
+# load all data from a particular folder 
+####
+calcFreqCutoff <- function(tf, coverage=.9) {
+  cumtf <- cumsum(tf)/sum(tf)
+  c.idx <- length(which(cumtf<=coverage)) + 1  # plus 1 to ensure cumulative sum exceeds coverage
+  return(c.idx)
 }

@@ -8,8 +8,6 @@ require(Matrix)
 
 outpath <- "rawdata"
 
-BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
-TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
 hashtag.pattern <- "#[0-9a-zA-Z]+"
 
 #load(file.path(outpath, "rawdata.RData"))
