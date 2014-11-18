@@ -7,7 +7,6 @@ require(slam)
 
 outpath <- "rawdata"
 
-UnigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 1, max = 1))
 BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
 TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
 
@@ -94,7 +93,7 @@ loadData <- function(pathname) {
 
 
 ####
-# load all data from a particular folder 
+# calculate index for last word to reach frequency coverage 
 ####
 calcFreqCutoff <- function(tf, coverage=.9) {
   cumtf <- cumsum(tf)/sum(tf)
