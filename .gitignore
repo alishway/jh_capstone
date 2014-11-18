@@ -1,23 +1,17 @@
 # History files
 .Rhistory
-
 # Example code in package build process
 *-Ex.R
-
 # R data files from past sessions
 .Rdata
-
 # RStudio files
 .Rproj.user/
-
-
 # specific to jh_capstone repository
 rawdata/
 rawdata.RData
 _milestone_report/
-
+_fullcorp
 #### standard from octocat
-
 # Compiled source #
 ###################
 *.com
@@ -26,7 +20,6 @@ _milestone_report/
 *.exe
 *.o
 *.so
- 
 # Packages #
 ############
 # it's better to unpack these files and commit the raw source
@@ -39,13 +32,11 @@ _milestone_report/
 *.rar
 *.tar
 *.zip
- 
 # Logs and databases #
 ######################
 *.log
 *.sql
 *.sqlite
- 
 # OS generated files #
 ######################
 .DS_Store
