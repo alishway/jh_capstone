@@ -10,6 +10,7 @@ hashtag.pattern <- "#[0-9a-zA-Z]+"
 
 BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
 TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
+QuadgramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 4, max = 4))
 
 ####
 # create a corpus from raw character and tagging origin

@@ -12,7 +12,7 @@ qn <- c("The guy in front of me just bought a pound of bacon, a bouquet, and a c
 source('~/GitHub/jh_capstone/predict_lib.R')
 
 coverage <- .60
-reload.tf <- FALSE
+reload.tf <- TRUE
 
 if (reload.tf) {
   ptm <- proc.time()
