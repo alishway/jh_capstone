@@ -10,7 +10,9 @@
 rawdata/
 rawdata.RData
 _milestone_report/
-_fullcorp
+_fullcorp/
+dictionaries/
+
 #### standard from octocat
 # Compiled source #
 ###################

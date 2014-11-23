@@ -1,5 +1,9 @@
 ### library of prediction functions for JH Capstone project on NLP
 
+####
+# count bigram probability of term following pre, with
+# tf1 unigram term frequency for pre and tf2 bigram term frequency for pre+term
+####
 prob1 <- function (term, pre, tf1, tf2) {
   bigram <- paste(pre, term)
   c.bigram <- tf2[bigram]
@@ -32,4 +36,12 @@ predictListCount <- function (pre, tf1, tf2) {
   candidates <- paste(pre, names(tf1))
   long.list <- tf2[candidates]
   return(long.list[!is.na(long.list)])
+}
+
+####
+# TODO: check trigram first, then bigram if not found, then unigram
+####
+
+predSimpleBackoff <- function (pre, tf1, tf2, tf3) {
+  
 }

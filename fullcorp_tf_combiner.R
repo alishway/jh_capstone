@@ -14,6 +14,9 @@ for (x in 76:100) {
   load(file.path(subdir, "tf.RData"))
   print(proc.time()-ptm)
 
+  # IMPORTANT NOTE: the tapply causes the sorted full.tf1 to be unsorted
+  # re-sorting needed in subsequent phase (e.g. tf_coverage.R)
+  
 #  full.tf1 <- c(full.tf1, tf1)
 #  full.tf1 <- tapply(full.tf1, names(full.tf1), sum)
 #  print(proc.time()-ptm)
