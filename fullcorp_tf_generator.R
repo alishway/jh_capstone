@@ -7,7 +7,7 @@ cu <- cut(1:length(full), 100, labels=FALSE)
 
 outpath <- "_fullcorp"
 
-for (x in unique(cu)) {
+for (x in (81:length(unique(cu)))) {
   print(x)
   ptm <- proc.time()  # start timer
   subdir <- file.path(outpath, sprintf("%03.0f", x))

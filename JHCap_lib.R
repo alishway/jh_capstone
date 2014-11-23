@@ -96,6 +96,7 @@ loadData <- function(pathname) {
 ####
 # calculate index for last word to reach frequency coverage 
 ####
+# CAUTION: THIS FUNCTION ASSUMES TF HAS BEEN SORTED IN ASCENDING ORDER
 calcFreqCutoff <- function(tf, coverage=.9) {
   cumtf <- cumsum(tf)/sum(tf)
   c.idx <- length(which(cumtf<=coverage)) + 1  # plus 1 to ensure cumulative sum exceeds coverage
