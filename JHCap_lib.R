@@ -12,7 +12,7 @@ BigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 2, max = 2))
 TrigramTokenizer <- function(x) NGramTokenizer(x, Weka_control(min = 3, max = 3))
 
 ####
-# create a corpus from raw character afer removing 
+# create a corpus from raw character and tagging origin
 ####
 CreateCorp <- function (chardata, tag_orig) {
   corp <- VCorpus(VectorSource(chardata))
