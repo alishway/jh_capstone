@@ -46,7 +46,7 @@ predictList <- function (pre, tf1, tf2, fun=prob1) {
 
 predictListCount <- function (pre, tf1, tf2) {
   candidates <- paste(pre, names(tf1))
-  long.list <- tf2[candidates]
+  long.list <- sort(tf2[candidates], decreasing=TRUE)
   return(long.list[!is.na(long.list)])
 }
 
@@ -65,12 +65,37 @@ predSimpleBackoff <- function (phrase, tf1, tf2, tf3) {
     bigram <- paste(words[len-1], words[len])
     pred <- predictListCount(bigram, tf1, tf3)[1]
     if (is.na(pred)) {
-      pred <- predictListCount(bigram[2], tf1, tf2)[1]
+      pred <- predictListCount(words[len], tf1, tf2)[1]
     }
 
   } else if (len == 1) {
     pred <- predictListCount(words, tf1, tf2)[1]
   } else pred <- NA
+  
+  return(pred)
+}
+
+####
+# predict next word after phrase with simple backoff using quadgram:
+# check quadgram first, then trigram if not found, then bigram
+# ignore unigram; it's always "the" at the top
+####
+predSimpleBackoffQuad <- function (phrase, tf1, tf2, tf3, tf4) {
+  len <- length(unlist(strsplit(phrase, " ")))
+  if (len > 2) {
+    corp <- VCorpus(VectorSource(phrase))
+    corp <- cleanCorp(corp)
+    words <- unlist(strsplit(corp[[1]]$content, " "))
+    trigram <- paste(words[len-2], words[len-1], words[len])
+    pred <- predictListCount(trigram, tf1, tf4)[1]
+    if (is.na(pred)) {
+      pred <- predSimpleBackoff(paste(words[len-1], words[len]),
+                                tf1, tf2, tf3)[1]
+    }
+    
+  } else {
+    pred <- predSimpleBackoff(phrase, tf1, tf2, tf3)
+  }  
   
   return(pred)
 }

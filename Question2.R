@@ -11,16 +11,29 @@ qn <- c("The guy in front of me just bought a pound of bacon, a bouquet, and a c
 
 source('~/GitHub/jh_capstone/predict_lib.R')
 
-coverage <- .60
+coverage <- .99
 reload.tf <- TRUE
+use.tf4 <- TRUE
 
 if (reload.tf) {
   ptm <- proc.time()
   loadTF(coverage)
   print(proc.time()-ptm)
+  if (use.tf4) {
+    load(sprintf("dictionaries/tf4/tf4_%03.0f.RData", coverage*1000), .GlobalEnv)
+    print(proc.time()-ptm)    
+  }
+}
+if (use.tf4) {
+  for (x in seq_along(qn)) {
+    ptm <- proc.time()
+    pred <- predSimpleBackoffQuad(qn[x], tf1, tf2, tf3, tf4)
+    print(pred)
+    print(proc.time()-ptm)
+  } 
 }
 
-
+#pred trigram by default always run
 for (x in seq_along(qn)) {
   ptm <- proc.time()
   pred <- predSimpleBackoff(qn[x], tf1, tf2, tf3)

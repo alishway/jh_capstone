@@ -1,12 +1,15 @@
 source('~/GitHub/jh_capstone/JHCap_lib.R')
 
 outpath <- "_fullcorp"
-full.tf4 <- numeric(0)
+
 
 #due to memory drain, split into groups of 5
 #to be merged later with merge_tf4.R
 
 for (y in 0:4) {
+  full.tf4 <- numeric(0)
+  gc()
+  
   for (z in 1:20) {
     x <- y*20 + z
     print(x)
@@ -26,5 +29,5 @@ for (y in 0:4) {
     print("complete")
   }
   
-  save(full.tf4, file = file.path(outpath, paste0("tf4_full_", y+1, ".RData"))  
+  save(full.tf4, file = file.path(outpath, paste0("tf4_full_", y+1, ".RData")))  
 }
