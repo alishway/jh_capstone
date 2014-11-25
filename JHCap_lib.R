@@ -112,10 +112,10 @@ calcFreqCutoff <- function(tf, coverage=.9) {
 # and col is the sequence number of the following n-1 gram
 ####
 coordTF <- function(bigterm, termlist) {
-  words <- unlist(strsplit(bigterm, " "))
-  len <- length(words)
-  term1 <- paste(words[1:(len-1)], collapse=" ")
-  term2 <- paste(words[2:len], collapse=" ")
+  wordlist <- unlist(strsplit(bigterm, " "))
+  len <- length(wordlist)
+  term1 <- paste(wordlist[1:(len-1)], collapse=" ")
+  term2 <- paste(wordlist[2:len], collapse=" ")
   trow <- which(termlist==term1)
   tcol <- which(termlist==term2)
   return(c(trow, tcol))
@@ -123,20 +123,37 @@ coordTF <- function(bigterm, termlist) {
 
 
 ####
-# create n-gram model count, given term frequencies of n and n+1 gram
-# (tf1 and tf2 respectively)
-# returns a sparseMatrix
+# create n-gram model count, given term frequencies of n+1 gram
+# returns n-gram model as sparseMatrix
+# and the list of terms for the row and col of sparseMatrix
 ####
-ngramSeqCount <- function(tf1, tf2) {
-  n.tf1 <- names(tf1)
-  n.tf2 <- names(tf2)
+ngramSeqCount <- function(tf2) {
+  
+  n.tf2 <- names(tf2)  #n+1 terms
+  
+  # construct possible n terms from n+1 terms
+  #n.tf1 <- sort(unique(unlist(strsplit(n.tf2, " "))))
+  u.tf2 <- strsplit(n.tf2, " ")
+  len <- length(u.tf2[[1]])  # assumption is all have same number of chars as first element
+  if (len < 2) {
+    print("term frequencies have to be of terms of at least 2 words (bigram) length")
+    return(NA)
+  }
+  n.tf1 <- do.call(c, lapply(u.tf2, function (x)
+    {return(c(paste(x[1:(len-1)], collapse = " "),
+              paste(x[2:len], collapse = " ")))}))
+  n.tf1 <- sort(unique(n.tf1))
   
   #map all the "coordinates" of preceding and following terms
   map.tf <- sapply(n.tf2, coordTF, n.tf1)
-  # TO DO: catch rows and cols returned as zero: filter out from mapping matrix
   
-  #return as sparsematrix
-  return(sparseMatrix(map.tf[1, ], map.tf[2, ], x=tf2))
+  #remove term names to save space, since they are stored in n.tf1 already
+  #may be convenient to comment out if names needed for debugging
+  dimnames(map.tf)[[2]] <- NULL
+  
+  #return as list of term list and sparsematrix
+  return(list(terms = n.tf1,
+         counts = sparseMatrix(map.tf[1, ], map.tf[2, ], x=as.vector(tf2))))
 }
 
 

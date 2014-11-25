@@ -22,11 +22,11 @@ for (x in coverage) {
     print(proc.time()-ptm)
   }
   ptm <- proc.time()
-  uniModelC <- ngramSeqCount(tf1, tf2)
+  uniModelC <- ngramSeqCount(tf2)
   print(proc.time()-ptm)
-  biModelC <- ngramSeqCount(tf2, tf3)
+  biModelC <- ngramSeqCount(tf3)
   print(proc.time()-ptm)
-  triModelC <- ngramSeqCount(tf2, tf3)
+  triModelC <- ngramSeqCount(tf4)
   print(proc.time()-ptm)
   
   save(uniModelC, biModelC, triModelC,
