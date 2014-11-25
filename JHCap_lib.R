@@ -80,9 +80,10 @@ countTermFreq <- function(tdm) {
 }
 
 
-
 ####
-# load all data from a particular folder 
+# load all data from a particular folder
+# designed for subfolders in folder "rawdata" in mind
+# where the subfolder number is the per-thousandth sample of full corpus
 ####
 loadData <- function(pathname) {
   subdir <- file.path(outpath, pathname)
@@ -102,4 +103,54 @@ calcFreqCutoff <- function(tf, coverage=.9) {
   cumtf <- cumsum(tf)/sum(tf)
   c.idx <- length(which(cumtf<=coverage)) + 1  # plus 1 to ensure cumulative sum exceeds coverage
   return(c.idx)
+}
+
+
+####
+# decompose an n-gram into a sequence of two n-1 grams, and give the sequence in termlist,
+# where row is the sequence number of the preceding n-1 gram
+# and col is the sequence number of the following n-1 gram
+####
+coordTF <- function(bigterm, termlist) {
+  words <- unlist(strsplit(bigterm, " "))
+  len <- length(words)
+  term1 <- paste(words[1:(len-1)], collapse=" ")
+  term2 <- paste(words[2:len], collapse=" ")
+  trow <- which(termlist==term1)
+  tcol <- which(termlist==term2)
+  return(c(trow, tcol))
+}
+
+
+####
+# create n-gram model count, given term frequencies of n and n+1 gram
+# (tf1 and tf2 respectively)
+# returns a sparseMatrix
+####
+ngramSeqCount <- function(tf1, tf2) {
+  n.tf1 <- names(tf1)
+  n.tf2 <- names(tf2)
+  
+  #map all the "coordinates" of preceding and following terms
+  map.tf <- sapply(n.tf2, coordTF, n.tf1)
+  # TO DO: catch rows and cols returned as zero: filter out from mapping matrix
+  
+  #return as sparsematrix
+  return(sparseMatrix(map.tf[1, ], map.tf[2, ], x=tf2))
+}
+
+
+####
+# calculate index for last word to reach frequency coverage 
+####
+buildProbMatrix <- function(n=1, coverage=.5, sourcepath="dictionaries") {
+  if (n > 3) {
+    print("at the moment only handles up to trigram")
+    return(NA)
+  }
+  load(file.path(sourcepath, paste0("tf_", coverage*1000, ".RData")))
+  if (n==2)
+    load(file.path(sourcepath, paste0("tf4/tf4_", coverage*1000, ".RData")))
+  
+  
 }
