@@ -112,6 +112,7 @@ calcFreqCutoff <- function(tf, coverage=.9) {
 # and col is the sequence number of the following n-1 gram
 ####
 coordTF <- function(bigterm, termlist) {
+
   wordlist <- unlist(strsplit(bigterm, " "))
   len <- length(wordlist)
   term1 <- paste(wordlist[1:(len-1)], collapse=" ")
@@ -128,34 +129,114 @@ coordTF <- function(bigterm, termlist) {
 # and the list of terms for the row and col of sparseMatrix
 ####
 ngramSeqCount <- function(tf2) {
+  timing <- TRUE
+  
+  if (timing) print("Start")
+  ptm <- proc.time()
   
   n.tf2 <- names(tf2)  #n+1 terms
+  if (timing) print(proc.time()-ptm)  #1
+  
   
   # construct possible n terms from n+1 terms
   #n.tf1 <- sort(unique(unlist(strsplit(n.tf2, " "))))
   u.tf2 <- strsplit(n.tf2, " ")
+  if (timing) print(proc.time()-ptm)  #2
+  
   len <- length(u.tf2[[1]])  # assumption is all have same number of chars as first element
+  if (timing) print(proc.time()-ptm)  #3
+  
   if (len < 2) {
     print("term frequencies have to be of terms of at least 2 words (bigram) length")
     return(NA)
   }
+  
   n.tf1 <- do.call(c, lapply(u.tf2, function (x)
     {return(c(paste(x[1:(len-1)], collapse = " "),
               paste(x[2:len], collapse = " ")))}))
+  if (timing) print(proc.time()-ptm)  #4
+  
   n.tf1 <- sort(unique(n.tf1))
+  if (timing) print(proc.time()-ptm)  #5
+  
+  require(compiler)
+  enableJIT(3)  # to force compile even nested functions
+  compCoordTF <- cmpfun(coordTF)
   
   #map all the "coordinates" of preceding and following terms
-  map.tf <- sapply(n.tf2, coordTF, n.tf1)
+  #map.tf <- sapply(n.tf2, coordTF, n.tf1)
+  map.tf <- sapply(n.tf2, compCoordTF, n.tf1)
+  if (timing) print(proc.time()-ptm)  #6
   
   #remove term names to save space, since they are stored in n.tf1 already
   #may be convenient to comment out if names needed for debugging
   dimnames(map.tf)[[2]] <- NULL
+  if (timing) print(proc.time()-ptm)  #7
+  
+  counts <- sparseMatrix(map.tf[1, ], map.tf[2, ], x=as.vector(tf2))
+  if (timing) print(proc.time()-ptm)  #8
+  
+  if (timing) print("Complete")
   
   #return as list of term list and sparsematrix
   return(list(terms = n.tf1,
-         counts = sparseMatrix(map.tf[1, ], map.tf[2, ], x=as.vector(tf2))))
+         counts = counts))
 }
 
+
+
+ngramSeqCount2 <- function(tf2) {
+  timing <- TRUE
+  
+  if (timing) print("Start")
+  ptm <- proc.time()
+  
+  n.tf2 <- names(tf2)  #n+1 terms
+  if (timing) print(proc.time()-ptm)  #1
+  
+  
+  # construct possible n terms from n+1 terms
+  #n.tf1 <- sort(unique(unlist(strsplit(n.tf2, " "))))
+  u.tf2 <- strsplit(n.tf2, " ")
+  if (timing) print(proc.time()-ptm)  #2
+  
+  len <- length(u.tf2[[1]])  # assumption is all have same number of chars as first element
+  if (timing) print(proc.time()-ptm)  #3
+  
+  if (len < 2) {
+    print("term frequencies have to be of terms of at least 2 words (bigram) length")
+    return(NA)
+  }
+  
+  n.tf1 <- do.call(c, lapply(u.tf2, function (x)
+  {return(c(paste(x[1:(len-1)], collapse = " "),
+            paste(x[2:len], collapse = " ")))}))
+  if (timing) print(proc.time()-ptm)  #4
+  
+  n.tf1 <- sort(unique(n.tf1))
+  if (timing) print(proc.time()-ptm)  #5
+  
+  #map all the "coordinates" of preceding and following terms
+
+  wn.tf2 <- strsplit(n.tf2, " ")
+  len <- length(wn.tf2[[1]])  # Assumption: all elements in list have same length
+  term1 <- sapply(wn.tf2, function(x) paste(x[1:(len-1)], collapse=" "))
+  term2 <- sapply(wn.tf2, function(x) paste(x[2:len], collapse=" "))
+  
+  trow <- match(term1, n.tf1)
+  tcol <- match(term2, n.tf1)
+
+  if (timing) print(proc.time()-ptm)  #6
+  
+  counts <- sparseMatrix(trow, tcol, x=as.vector(tf2))
+  if (timing) print(proc.time()-ptm)  #7
+  
+  if (timing) print("Complete")
+  
+  #return as list of term list and sparsematrix
+  return(list(terms = n.tf1,
+              counts = counts))
+}
 
 ####
 # calculate index for last word to reach frequency coverage 

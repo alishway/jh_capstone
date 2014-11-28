@@ -99,3 +99,31 @@ predSimpleBackoffQuad <- function (phrase, tf1, tf2, tf3, tf4) {
   
   return(pred)
 }
+
+####
+# predict with simple backoff using ngram model:
+# check trigram model first (built from quadgram list)
+# then bigram if not found and lastly unigram model 
+####
+predNgramBackoff <- function (phrase, n, model) {
+  corp <- VCorpus(VectorSource(phrase))
+  corp <- cleanCorp(corp)
+  words <- unlist(strsplit(corp[[1]]$content, " "))
+  len <- length(words)
+  # TO DO: error check to prevent n being incompatible with tf
+  # (i.e. n=1 must be unigram model tf)
+  if (len <= n) {
+    print("phrase shorter than n-gram size, try using bigger n-gram model")
+    return(NA)
+  }
+  else {
+    preterm <- paste(words[(len-n):len], collapse=" ")
+    maxrow <- which(model$terms == preterm)
+    maxcol <- which(counts1[maxrow, ] == max(counts1[maxrow,]))
+    if (is.na(pred)) {
+      pred <- predictListCount(words[len], tf1, tf2)[1]
+    }
+  }
+    
+  return(pred)
+}
