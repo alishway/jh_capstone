@@ -13,39 +13,19 @@ require(compiler)
 enableJIT(1)  # to force compile even nested functions
 
 source('~/GitHub/jh_capstone/predict_lib.R')
-compNgramSeqCount <- cmpfun(ngramSeqCount)
+
 
 corp <- VCorpus(VectorSource(qn))
 c.corp <- cleanCorp(corp)
 
-#load("dictionaries/ngramC_700.RData")
+#load("dictionaries/ngramC_990.RData")
 
-predNgramBackoff <- function (phrase, n, model) {
-  corp <- VCorpus(VectorSource(phrase))
-  corp <- cleanCorp(corp)
-  wordlist <- unlist(strsplit(corp[[1]]$content, " "))
-  len <- length(wordlist)
-  if (len <= n) {
-    print("phrase shorter than n-gram size, try using bigger n-gram model")
-    pred <- NA
-  }
-  else {
-    preterm <- paste(wordlist[(len-n+1):len], collapse=" ")
-    maxrow <- which(model$terms == preterm)
-    # TO DO: How to handle maxrow returning integer(0) (i.e. term doesn't exist)
-    maxcol <- which(model$counts[maxrow, ] == max(model$counts[maxrow,]))
-    pred <- model$terms[maxcol]
-  }
-  
-  return(pred)
-}
-
-n <- 2
-model <- biModelC
+n <- 3
+model <- triModelC
 
 for (x in seq_along(qn)) {
   ptm <- proc.time()
-  pred <- predNgramBackoff(qn[x], n, model)
+  pred <- predNgramBackoff(qn[x], uniModelC, biModelC, triModelC)
   print(pred)
   print(proc.time()-ptm)
 }

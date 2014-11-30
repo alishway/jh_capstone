@@ -1,5 +1,8 @@
 ### library of functions for JH Capstone project on NLP
 
+require(compiler)
+enableJIT(3)  # to force compile even nested functions
+
 require(tm)
 require(RWeka)
 require(Matrix)
@@ -59,6 +62,18 @@ subsample <- function(rawdata, percent=.1, seed=17071978) {
 
 
 ####
+# select a random sample of x% (default is 10) observations from an input vector
+# of characters, returning its index
+####
+subsample.idx <- function(rawdata,  percent=.1, seed=17071978) {
+  set.seed(seed)
+  len <- length(rawdata)
+  idx <- rbinom(len, 1, prob=percent)
+  return(which(idx==1))
+}
+
+
+####
 # Clean up a corpus
 ####
 cleanCorp <- function (corp) {
@@ -70,6 +85,45 @@ cleanCorp <- function (corp) {
   return(corp)
 }
 
+compCleanCorp <- cmpfun(cleanCorp)
+
+####
+# Clean up text before made into corpus
+####
+cleanText <- function (texts) {
+  c.texts <- gsub(hashtag.pattern, "", texts)
+  c.texts <- gsub('â€“', '–', c.texts)
+  c.texts <- gsub('â€™', '’', c.texts)
+  c.texts <- gsub('â€œ', '“', c.texts)
+  c.texts <- gsub('/â€[[:cntrl:]]/', '”', c.texts)
+  
+  return(c.texts)
+}
+
+compCleanText <- cmpfun(cleanText)
+
+
+####
+# convenience function to prepare text into clean corpus
+####
+prepCorp <- function (texts) {
+  corp <- VCorpus(VectorSource(compCleanText(texts)))
+  corp <- compCleanCorp(corp)
+  return(corp)
+}
+
+compPrepCorp <- cmpfun(prepCorp)
+
+
+####
+# convenience function to return clean corpus as its text
+####
+prepText <- function(fulltext) {
+  texts <- sapply(compPrepCorp(fulltext), function(x) return(x$content))
+  return(texts)
+}
+
+compPrepText <- cmpfun(prepText)
 
 ####
 # count term frequencies for a particular term document matrix and sort
@@ -78,6 +132,8 @@ countTermFreq <- function(tdm) {
   term.freq <- sort(row_sums(tdm),decreasing=TRUE)
   return(term.freq)
 }
+
+compCountTermFreq <- cmpfun(countTermFreq)
 
 
 ####
@@ -129,64 +185,7 @@ coordTF <- function(bigterm, termlist) {
 # and the list of terms for the row and col of sparseMatrix
 ####
 ngramSeqCount <- function(tf2) {
-  timing <- TRUE
-  
-  if (timing) print("Start")
-  ptm <- proc.time()
-  
-  n.tf2 <- names(tf2)  #n+1 terms
-  if (timing) print(proc.time()-ptm)  #1
-  
-  
-  # construct possible n terms from n+1 terms
-  #n.tf1 <- sort(unique(unlist(strsplit(n.tf2, " "))))
-  u.tf2 <- strsplit(n.tf2, " ")
-  if (timing) print(proc.time()-ptm)  #2
-  
-  len <- length(u.tf2[[1]])  # assumption is all have same number of chars as first element
-  if (timing) print(proc.time()-ptm)  #3
-  
-  if (len < 2) {
-    print("term frequencies have to be of terms of at least 2 words (bigram) length")
-    return(NA)
-  }
-  
-  n.tf1 <- do.call(c, lapply(u.tf2, function (x)
-    {return(c(paste(x[1:(len-1)], collapse = " "),
-              paste(x[2:len], collapse = " ")))}))
-  if (timing) print(proc.time()-ptm)  #4
-  
-  n.tf1 <- sort(unique(n.tf1))
-  if (timing) print(proc.time()-ptm)  #5
-  
-  require(compiler)
-  enableJIT(3)  # to force compile even nested functions
-  compCoordTF <- cmpfun(coordTF)
-  
-  #map all the "coordinates" of preceding and following terms
-  #map.tf <- sapply(n.tf2, coordTF, n.tf1)
-  map.tf <- sapply(n.tf2, compCoordTF, n.tf1)
-  if (timing) print(proc.time()-ptm)  #6
-  
-  #remove term names to save space, since they are stored in n.tf1 already
-  #may be convenient to comment out if names needed for debugging
-  dimnames(map.tf)[[2]] <- NULL
-  if (timing) print(proc.time()-ptm)  #7
-  
-  counts <- sparseMatrix(map.tf[1, ], map.tf[2, ], x=as.vector(tf2))
-  if (timing) print(proc.time()-ptm)  #8
-  
-  if (timing) print("Complete")
-  
-  #return as list of term list and sparsematrix
-  return(list(terms = n.tf1,
-         counts = counts))
-}
-
-
-
-ngramSeqCount2 <- function(tf2) {
-  timing <- TRUE
+  timing <- FALSE  # turn TRUE for time bottleneck debugging
   
   if (timing) print("Start")
   ptm <- proc.time()
@@ -237,6 +236,8 @@ ngramSeqCount2 <- function(tf2) {
   return(list(terms = n.tf1,
               counts = counts))
 }
+
+compNgramSeqCount <- cmpfun(ngramSeqCount)
 
 ####
 # calculate index for last word to reach frequency coverage 

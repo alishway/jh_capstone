@@ -101,29 +101,49 @@ predSimpleBackoffQuad <- function (phrase, tf1, tf2, tf3, tf4) {
 }
 
 ####
+# predict with using ngram model
+# wordlist is sequence of word of phrase to be predicted,
+# after cleanup and separating into individual words
+####
+predNgram <- function (wordlist, n, model) {
+  # TO DO: error check to prevent n being incompatible with tf
+  # (i.e. n=1 must be unigram model tf)
+  len <- length(wordlist)
+  preterm <- paste(wordlist[(len-n+1):len], collapse=" ")
+  maxrow <- which(model$terms == preterm)
+  if (length(maxrow) == 0) pred <- NA
+  else {
+    maxcnt <- max(model$counts[maxrow,])
+    if (maxcnt == 0) {  # i.e. preterm not found in n-gram
+      #just eject. backoff to lower Ngram to be handled in wrapper function
+      pred <- NA
+    } else {
+      maxcol <- which(model$counts[maxrow, ] == maxcnt)
+      pred <- model$terms[maxcol[1]]  # subscript 1 in case of ties      
+    }
+  }
+  return(pred)
+}
+
+compPredNgram <- cmpfun(predNgram)
+
+####
 # predict with simple backoff using ngram model:
 # check trigram model first (built from quadgram list)
 # then bigram if not found and lastly unigram model 
 ####
-predNgramBackoff <- function (phrase, n, model) {
-  corp <- VCorpus(VectorSource(phrase))
-  corp <- cleanCorp(corp)
-  words <- unlist(strsplit(corp[[1]]$content, " "))
-  len <- length(words)
-  # TO DO: error check to prevent n being incompatible with tf
-  # (i.e. n=1 must be unigram model tf)
-  if (len <= n) {
-    print("phrase shorter than n-gram size, try using bigger n-gram model")
-    return(NA)
+predNgramBackoff <- function (phrase, unimod, bimod, trimod) {
+  wordlist <- unlist(strsplit(compPrepText(phrase), " "))
+  pred <- NA
+  len <- length(wordlist)
+  if (len > 3) {
+    pred <- predNgram(wordlist, 3, trimod)
   }
-  else {
-    preterm <- paste(words[(len-n):len], collapse=" ")
-    maxrow <- which(model$terms == preterm)
-    maxcol <- which(counts1[maxrow, ] == max(counts1[maxrow,]))
-    if (is.na(pred)) {
-      pred <- predictListCount(words[len], tf1, tf2)[1]
-    }
+  if (is.na(pred) & (len > 2)) {
+    pred <- predNgram(wordlist, 2, bimod)
   }
-    
+  if (is.na(pred)) {
+    pred <- predNgram(wordlist, 1, unimod)
+  }
   return(pred)
 }
