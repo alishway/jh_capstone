@@ -18,14 +18,13 @@ source('~/GitHub/jh_capstone/predict_lib.R')
 corp <- VCorpus(VectorSource(qn))
 c.corp <- cleanCorp(corp)
 
-#load("dictionaries/ngramC_990.RData")
+#load("dictionaries/ngramC_700.RData")
 
-n <- 3
-model <- triModelC
-
-for (x in seq_along(qn)) {
+x<-2
+#for (x in seq_along(qn)) {
   ptm <- proc.time()
-  pred <- predNgramBackoff(qn[x], uniModelC, biModelC, triModelC)
-  print(pred)
+  pred <- compPredStupidBackoff(qn[x], uniModelC, biModelC, triModelC)
+  print(as.character(pred$term[which(pred$prob==max(pred$prob, na.rm=TRUE))[1]]))
+#  print(pred)
   print(proc.time()-ptm)
-}
+#}

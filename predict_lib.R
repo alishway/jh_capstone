@@ -104,8 +104,9 @@ predSimpleBackoffQuad <- function (phrase, tf1, tf2, tf3, tf4) {
 # predict with using ngram model
 # wordlist is sequence of word of phrase to be predicted,
 # after cleanup and separating into individual words
+# if probF is TRUE, will return also its probability
 ####
-predNgram <- function (wordlist, n, model) {
+predNgram <- function (wordlist, n, model, probF=FALSE) {
   # TO DO: error check to prevent n being incompatible with tf
   # (i.e. n=1 must be unigram model tf)
   len <- length(wordlist)
@@ -122,7 +123,13 @@ predNgram <- function (wordlist, n, model) {
       pred <- model$terms[maxcol[1]]  # subscript 1 in case of ties      
     }
   }
-  return(pred)
+  if (probF) {
+    prob <- NA
+    if (!is.na(pred)) {
+      prob <- model$counts[maxrow, maxcol[1]] / sum(model$counts[maxrow, ])
+    }
+    return(data.frame(term=pred, prob=prob))
+  } else return(pred)
 }
 
 compPredNgram <- cmpfun(predNgram)
@@ -147,3 +154,28 @@ predNgramBackoff <- function (phrase, unimod, bimod, trimod) {
   }
   return(pred)
 }
+
+
+####
+# predict with stupid backoff using ngram model:
+# calculate probability for trigram, discounted for bigram,
+# further discounted for unigram, then compare 
+####
+predStupidBackoff <- function (phrase, unimod, bimod, trimod) {
+  discount <- .4
+  wordlist <- unlist(strsplit(compPrepText(phrase), " "))
+  len <- length(wordlist)
+  pred <- data.frame(term=character(0), prob=numeric(0))
+  if (len > 3) {
+    pred <- rbind(pred, compPredNgram(wordlist, 3, trimod, probF=TRUE))
+  }
+  if (len > 2) {
+    pred <- rbind(pred, compPredNgram(wordlist, 2, bimod, probF=TRUE))
+  }
+  pred <- rbind(pred, compPredNgram(wordlist, 1, unimod, probF=TRUE))
+  pred$prob <- pred$prob * discount^seq(0, nrow(pred)-1)
+  
+  return(pred)
+}
+
+compPredStupidBackoff <- cmpfun(predStupidBackoff)
