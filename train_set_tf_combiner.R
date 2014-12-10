@@ -11,6 +11,7 @@ tfCombiner <- function(full.tf, ngram=1, outpath="training", n=100) {
   for (x in 1:n) {
     print(x)
     ptm <- proc.time()  # start timer
+    gc()
     subdir <- file.path(outpath, sprintf("%03.0f", x))
     load(file.path(subdir, "tf.RData"))
     print(proc.time()-ptm)
@@ -29,6 +30,14 @@ tfCombiner <- function(full.tf, ngram=1, outpath="training", n=100) {
     }
     
     full.tf <- tapply(full.tf, names(full.tf), sum)
+
+    #temporary save
+    if (x %in% c(30, 60, 70, 80, 90, 95)) {
+      print("Save temp file")
+      save(full.tf, file = file.path(outpath, sprintf("tempfile_%03.0f_ngram%d", x, ngram)))
+      print(proc.time()-ptm)
+    }
+
     print(proc.time()-ptm)
     
     print("complete")

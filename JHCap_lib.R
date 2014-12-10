@@ -8,6 +8,9 @@ require(RWeka)
 require(Matrix)
 require(slam)
 
+# crucial to source with encoding for cleanup
+source.with.encoding('~/GitHub/jh_capstone/cleanup_lib.R', encoding='UTF-8')
+
 outpath <- "rawdata"
 hashtag.pattern <- "#[0-9a-zA-Z]+"
 
@@ -71,59 +74,6 @@ subsample.idx <- function(rawdata,  percent=.1, seed=17071978) {
   idx <- rbinom(len, 1, prob=percent)
   return(which(idx==1))
 }
-
-
-####
-# Clean up a corpus
-####
-cleanCorp <- function (corp) {
-  corp <- tm_map(corp, removeNumbers)
-  corp <- tm_map(corp, removePunctuation,
-                 preserve_intra_word_dashes=TRUE)
-  corp <- tm_map(corp, content_transformer(tolower))
-  corp <- tm_map(corp, stripWhitespace)
-  return(corp)
-}
-
-compCleanCorp <- cmpfun(cleanCorp)
-
-####
-# Clean up text before made into corpus
-####
-cleanText <- function (texts) {
-  c.texts <- gsub(hashtag.pattern, "", texts)
-  c.texts <- gsub('â€“', '–', c.texts)
-  c.texts <- gsub('â€™', '’', c.texts)
-  c.texts <- gsub('â€œ', '“', c.texts)
-  c.texts <- gsub('/â€[[:cntrl:]]/', '”', c.texts)
-  
-  return(c.texts)
-}
-
-compCleanText <- cmpfun(cleanText)
-
-
-####
-# convenience function to prepare text into clean corpus
-####
-prepCorp <- function (texts) {
-  corp <- VCorpus(VectorSource(compCleanText(texts)))
-  corp <- compCleanCorp(corp)
-  return(corp)
-}
-
-compPrepCorp <- cmpfun(prepCorp)
-
-
-####
-# convenience function to return clean corpus as its text
-####
-prepText <- function(fulltext) {
-  texts <- sapply(compPrepCorp(fulltext), function(x) return(x$content))
-  return(texts)
-}
-
-compPrepText <- cmpfun(prepText)
 
 ####
 # count term frequencies for a particular term document matrix and sort
