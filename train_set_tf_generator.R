@@ -3,16 +3,17 @@
 source('~/GitHub/jh_capstone/fullcorp_tf_generator_lib.R')
 
 timing <- TRUE
-clean.text <- FALSE
-load.text <- TRUE
+clean.text <- TRUE
+load.text <- FALSE
 
 outpath <- "training"
 #train.pct <- seq(.85, .9, .05)
-train.pct <- .7
+#train.pct <- .7
+train.pct <- numeric(0)
 
 if (clean.text) {
   ptm <- proc.time()
-  load("rawdata/rawdata.RData")
+#  load("rawdata/rawdata.RData")
   if (timing) print(proc.time()-ptm)
   
   # clean off hashtags, etc
