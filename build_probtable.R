@@ -6,23 +6,29 @@ use.tf4 <- TRUE
 
 if (reload.tf) {
   ptm <- proc.time()
-  loadTF(coverage)
+#  loadTF(coverage)
+  load("dictionaries/ngramC_700.RData")
   print(proc.time()-ptm)
-  if (use.tf4) {
-    load(sprintf("dictionaries/tf4/tf4_%03.0f.RData", coverage*1000), .GlobalEnv)
-    print(proc.time()-ptm)    
-  }
+#  if (use.tf4) {
+#    load(sprintf("dictionaries/tf4/tf4_%03.0f.RData", coverage*1000), .GlobalEnv)
+#    print(proc.time()-ptm)    
+#  }
 }
 
 #load model as unigram/bigram/trigram
-model <- tf1
+model <- uniModelC
 d <- .75  # discount value for counts
-#predNgram <- function (wordlist, n, model, probF=FALSE) {
+#buildProbNgram <- function (model, d=.75) {
   # TO DO: error check to prevent n being incompatible with tf
   # (i.e. n=1 must be unigram model tf)
+  
+  #eliminate tokens with 0 count
+  zeros <- rowSums(model$counts) == 0
+  prob.model <- model$counts[-zeros, -zeros]
+  terms <- model$terms[-zeros]
 
-#eliminate tokens with 0 count
-zeros <- rowSums(model) == 0
-prob.model <- model[-zeros, -zeros]
+  prob.model <- (prob.model-d)/rowSums(prob.model)
+  return(list(terms=terms, prob=prob.model)
+#}
 
-prob.model <- (prob.model-d)/rowSums(prob.model)
+prob.UniModel <- buildProbNgram(uniModelC)

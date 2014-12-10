@@ -95,7 +95,8 @@ cleanText <- function (texts) {
   c.texts <- gsub('â€“', '–', c.texts)
   c.texts <- gsub('â€™', '’', c.texts)
   c.texts <- gsub('â€œ', '“', c.texts)
-  c.texts <- gsub('/â€[[:cntrl:]]/', '”', c.texts)
+#  c.texts <- gsub('//â€[[:cntrl:]]//', '”', c.texts)
+c.texts <- gsub("â€[[:cntrl:]]", '”', c.texts)
   
   return(c.texts)
 }
@@ -107,7 +108,8 @@ compCleanText <- cmpfun(cleanText)
 # convenience function to prepare text into clean corpus
 ####
 prepCorp <- function (texts) {
-  corp <- VCorpus(VectorSource(compCleanText(texts)))
+  clean.text <- compCleanText(texts)
+  corp <- VCorpus(VectorSource(clean.text))
   corp <- compCleanCorp(corp)
   return(corp)
 }

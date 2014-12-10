@@ -7,8 +7,8 @@ clean.text <- FALSE
 load.text <- TRUE
 
 outpath <- "training"
-train.pct <- seq(.85, .9, .05)
-#train.pct <- .7
+#train.pct <- seq(.85, .9, .05)
+train.pct <- .7
 
 if (clean.text) {
   ptm <- proc.time()
