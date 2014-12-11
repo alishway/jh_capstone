@@ -8,12 +8,12 @@ load.text <- FALSE
 
 outpath <- "training"
 #train.pct <- seq(.85, .9, .05)
-#train.pct <- .7
-train.pct <- numeric(0)
+train.pct <- .7
+
 
 if (clean.text) {
   ptm <- proc.time()
-#  load("rawdata/rawdata.RData")
+  load("rawdata/rawdata.RData")
   if (timing) print(proc.time()-ptm)
   
   # clean off hashtags, etc
