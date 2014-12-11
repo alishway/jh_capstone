@@ -12,8 +12,8 @@ require(tm)
 ####
 cleanCorp <- function (corp) {
   corp <- tm_map(corp, removeNumbers)
-  corp <- tm_map(corp, removePunctuation,
-                 preserve_intra_word_dashes=TRUE)
+  corp <- tm_map(corp, removePunctuation)
+#                 preserve_intra_word_dashes=TRUE)
   corp <- tm_map(corp, content_transformer(tolower))
   corp <- tm_map(corp, stripWhitespace)
   return(corp)
@@ -26,10 +26,14 @@ compCleanCorp <- cmpfun(cleanCorp)
 ####
 cleanText <- function(texts) {
   c.texts <- gsub(hashtag.pattern, "", texts)
-  c.texts <- gsub('â€“', '–', c.texts)
-  c.texts <- gsub('â€™', '’', c.texts)
-  c.texts <- gsub('â€œ', '“', c.texts)
-  c.texts <- gsub("â€[[:cntrl:]]", '”', c.texts)
+#  c.texts <- gsub('â€“', '–', c.texts)
+#  c.texts <- gsub('â€™', '’', c.texts)
+#  c.texts <- gsub('â€œ', '“', c.texts)
+#  c.texts <- gsub("â€[[:cntrl:]]", '”', c.texts)
+  c.texts <- gsub('â€“', '', c.texts)
+  c.texts <- gsub('â€™', '', c.texts)
+  c.texts <- gsub('â€œ', '', c.texts)
+  c.texts <- gsub("â€[[:cntrl:]]", '', c.texts)
   
   return(c.texts)
 }
