@@ -1,11 +1,18 @@
-##############
+####
+# search for optimum lambda weights for prediction
+####
+
+source('~/GitHub/jh_capstone/predict_lib.R')
+
+
+####
 # convenience function to generate all possible combinations of value
 # of d columns with values ranging between a and b in increments of x
 # where the sigma of the values in the combination cannot exceed l
 # Sample application: to generate lambda 1, lambda 2, lambda 3
 # where all lambda are between 0 to 1 (0, 0.5, and 1)
 # and constraint sigma lambda is equal to 1
-##############
+####
 
 lambdaComb <- function(a=0, b=1, x=.5, d=3, l=1) {
   m.seq <- seq(a, b, x)
@@ -15,3 +22,5 @@ lambdaComb <- function(a=0, b=1, x=.5, d=3, l=1) {
   dimnames(m) <- NULL
   return(m)
 }
+
+lambda.set <- lambdaComb(0, 1, .1, 3, 1)
