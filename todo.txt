@@ -3,7 +3,7 @@ Tasks:
 - recalculate probability table assuming d=.75 for discounted c - DONE
 - Calculate Good-Turing numbers (Esp for tf2 and 3)
 c* = (c+1)*(Nc+1) / Nc -> verify d = .75 for bigram and trigram also
-- create held-out data from test data
+- create held-out data from test data - DONE
 - Find lambda for trigam and bigram: use training data, maximize a held-out data
 log P(wi|M(lambda3, lambda2)) = sigma of i(logPMlambda3, lambda2(wi|wi-1)
 (i.e. most time that the lambda combo give a highest P to the correct word)

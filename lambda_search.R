@@ -89,83 +89,110 @@ compProbVal <- cmpfun(probVal)
 reload.prob <- TRUE
 reload.holdout <- TRUE
 lambda.set <- lambdaComb(0, 1, .1, 3, 1)
-#coverage <- c(seq(.7, .95, .05), .99)  # 1 is 100%
-coverage <- .7
+coverage <- c(seq(.7, .95, .05), .99)  # 1 is 100%
+#coverage <- .7
 train.size <- .7
 
-
-for (x in coverage) {
-  setpath <- file.path("training", sprintf("%03.0f", train.size*100))
-  print(x)
+#####
+# main function to generate lambda for various coverage (to be compiled)
+#####
+#generateLambda <- function(coverage) {
   ptm <- proc.time()
-  
+  setpath <- file.path("training", sprintf("%03.0f", train.size*100))
   if (reload.holdout) {
     print("reload holdout")
     load(file.path(setpath, "target_words_holdout.RData"))
     print(proc.time()-ptm)
   }
+  for (x in coverage) {
+    print(x)
+    ptm <- proc.time()
 
-  if (reload.prob) {
-    print("reload probabilities")
-    load(file.path(setpath, sprintf("dictionaries/probC_%03.0f.RData", x*1000)))
+    if (reload.prob) {
+      print("reload probabilities")
+      load(file.path(setpath, sprintf("dictionaries/probC_%03.0f.RData", x*1000)))
+      print(proc.time()-ptm)
+    }  
+    
+    #scale probs down so max is 1; to check if the scale affects lambda calculation -> it DOES
+    prob.uni$prob <- prob.uni$prob / 255
+    prob.bi$prob <- prob.bi$prob / 255
+    prob.tri$prob <- prob.tri$prob / 255
+    
+    phr <- strsplit(target.holdout$phrase, " ")
+    len <- sapply(phr, length)
     print(proc.time()-ptm)
-  }  
+    
+    pre.uni <- mapply("[", phr, len)
+    post.uni <- target.holdout$target
+    print(proc.time()-ptm)
+    
+    # retrieve probability for all pairs of pre- and post- unigram
+    pr.uni <- mapply(compProbVal, sapply(pre.uni, compProbIdx, prob=prob.uni),
+                     sapply(post.uni, compProbIdx, prob=prob.uni),
+                     MoreArgs = list(prob = prob.uni), USE.NAMES=FALSE)
+    print(proc.time()-ptm)
+    
+    
+    #use mapply instead of paste to handle empty characters better
+    pre.bi <- mapply(paste, mapply("[", phr, len-1), pre.uni)
+    post.bi <- paste(pre.uni, post.uni)
+    print(proc.time()-ptm)
+    
+    pre.tri <- mapply(paste, mapply("[", phr, len-2), pre.bi)
+    post.tri <- paste(pre.bi, post.uni)
+    print(proc.time()-ptm)
 
-  #scale probs down so max is 1; to check if the scale affects lambda calculation -> it DOES
-  prob.uni$prob <- prob.uni$prob / 255
-  prob.bi$prob <- prob.bi$prob / 255
-  prob.tri$prob <- prob.tri$prob / 255
-  
-  phr <- strsplit(target.holdout$phrase, " ")
-  len <- sapply(phr, length)
-  print(proc.time()-ptm)
-  
-  pre.uni <- mapply("[", phr, len)
-  print(proc.time()-ptm)
-  
-  pre.bi <- mapply(paste, mapply("[", phr, len-1), pre.uni)
-  print(proc.time()-ptm)
-  
-  #use mapply instead of paste to handle empty characters better
-  pre.tri <- mapply(paste, mapply("[", phr, len-2), pre.bi)
-  print(proc.time()-ptm)
-  
-  post.uni <- target.holdout$target
-  post.bi <- paste(pre.uni, post.uni)
-  post.tri <- paste(pre.bi, post.uni)
-  print(proc.time()-ptm)
-  
-  #remove all n-grams with less than n tokens; marked by starting with space
-  pre.bi <- gsub("^ .+", "", pre.bi)
-  pre.tri <- gsub("^ .+", "", pre.tri)
-  post.tri <- gsub("^ .+", "", post.tri)
-  print(proc.time()-ptm)
-  
-  # retrieve probability for all pairs of pre- and post- ngram
-  pr.uni <- mapply(compProbVal, sapply(pre.uni, compProbIdx, prob=prob.uni),
-                   sapply(post.uni, compProbIdx, prob=prob.uni),
-                   MoreArgs = list(prob = prob.uni), USE.NAMES=FALSE)
-  print(proc.time()-ptm)
-  
-  pr.bi <- mapply(compProbVal, sapply(pre.bi, compProbIdx, prob=prob.bi),
-                  sapply(post.bi, compProbIdx, prob=prob.bi),
-                  MoreArgs = list(prob = prob.bi), USE.NAMES=FALSE)
-  print(proc.time()-ptm)
-  
-  pr.tri <- mapply(compProbVal, sapply(pre.tri, compProbIdx, prob=prob.tri),
-                   sapply(post.tri, compProbIdx, prob=prob.tri),
-                   MoreArgs = list(prob = prob.tri), USE.NAMES=FALSE)
-  print(proc.time()-ptm)
-  
-  pr.all <- rbind(pr.uni, pr.bi, pr.tri)
-  
-  # create all combination of l1*p1 + l2*p2 + l3*p3
-  lambda.sum <- do.call(rbind, lapply(as.data.frame(t(lambda.set)),
-                                      function (x) {return(colSums(x * pr.all))}))
-  print(proc.time()-ptm)
-  
-  lambda.sigma <- rowSums(lambda.sum)
-  
-  print("Completed")
-}
+    #remove all n-grams with less than n tokens; marked by starting with space
+    pre.bi <- gsub("^ .+", "", pre.bi)
+    pre.tri <- gsub("^ .+", "", pre.tri)
+    post.tri <- gsub("^ .+", "", post.tri)
+    print(proc.time()-ptm)
 
+    #remove to save memory
+    rm(post.uni, pre.uni)
+    gc()
+    
+    # retrieve probability for all pairs of pre- and post- bigram
+    pr.bi <- mapply(compProbVal, sapply(pre.bi, compProbIdx, prob=prob.bi),
+                    sapply(post.bi, compProbIdx, prob=prob.bi),
+                    MoreArgs = list(prob = prob.bi), USE.NAMES=FALSE)
+    print(proc.time()-ptm)
+    
+    #remove to save memory
+    rm(pre.bi, post.bi)
+    gc()
+    
+    # retrieve probability for all pairs of pre- and post- trigram
+    pr.tri <- mapply(compProbVal, sapply(pre.tri, compProbIdx, prob=prob.tri),
+                     sapply(post.tri, compProbIdx, prob=prob.tri),
+                     MoreArgs = list(prob = prob.tri), USE.NAMES=FALSE)
+    print(proc.time()-ptm)
+
+    #remove to save memory
+    rm(pre.tri, post.tri)
+    rm(prob.uni, prob.bi, prob.tri)
+    gc()
+    print(proc.time()-ptm)
+
+    #combine all ngram probability to cross multiply with lambda
+    pr.all <- rbind(pr.uni, pr.bi, pr.tri)
+    
+    # create all combination of l1*p1 + l2*p2 + l3*p3
+    lambda.sum <- do.call(rbind, lapply(as.data.frame(t(lambda.set)),
+                                        function (x) {return(colSums(x * pr.all))}))
+    print(proc.time()-ptm)
+    
+    lambda.sigma <- rowSums(lambda.sum)
+    
+    save(pr.uni, pr.bi, pr.tri, lambda.sum, lambda.set, lambda.sigma,
+         file=file.path(setpath, sprintf("dictionaries/lambda_table_C%03.0f.RData", x*1000)))
+    print(proc.time()-ptm)
+    
+    print("Completed")
+  }
+#}
+
+#compGenerateLambda <- cmpfun(generateLambda)
+
+#compGenerateLambda(coverage)
