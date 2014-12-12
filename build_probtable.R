@@ -1,23 +1,14 @@
-#####
+####
 # create probability table from n-gram models (sparse matrix)
 ####
 
 source('~/GitHub/jh_capstone/predict_lib.R')
 
-coverage <- .5
-reload.tf <- FALSE
-setpath <- "dictionaries"
-coverage <- .7
-
-if (reload.tf) {
-  ptm <- proc.time()
-  load(file.path(setpath, sprintf("ngramC_%03.0f.RData", coverage*1000)))
-  print(proc.time()-ptm)
-}
-
-#load model as unigram/bigram/trigram
-#model <- uniModelC
-#d <- .75  # discount value for counts
+####
+# load model as unigram/bigram/trigram
+# model <- uniModelC
+# d <- .75  # discount value for counts
+####
 buildProbNgram <- function (model, d = .75) {
   prob <- model$counts
   
@@ -34,15 +25,30 @@ buildProbNgram <- function (model, d = .75) {
   return(list(terms=model$terms, prob=prob))
 }
 
-ptm <- proc.time()
-prob.uni <- buildProbNgram(uniModelC)
-print(proc.time()-ptm)
 
-#prob.bi <- buildProbNgram(biModelC)
-print(proc.time()-ptm)
+reload.tf <- TRUE
+setpath <- "training/070/dictionaries"
+coverage <- c(seq(.7, .95, .05), .99) 
 
-#prob.tri <- buildProbNgram(triModelC)
-print(proc.time()-ptm)
-
-#save(prob.uni, prob.bi, prob.tri,
-#     file=file.path(setpath, sprintf("probC_%03.0f.RData", coverage)))
+for (x in coverage) {
+  print(x)
+  if (reload.tf) {
+    ptm <- proc.time()
+    load(file.path(setpath, sprintf("ngramC_%03.0f.RData", x*1000)))
+    print(proc.time()-ptm)
+  }
+  
+  ptm <- proc.time()
+  prob.uni <- buildProbNgram(uniModelC)
+  print(proc.time()-ptm)
+  
+  prob.bi <- buildProbNgram(biModelC)
+  print(proc.time()-ptm)
+  
+  prob.tri <- buildProbNgram(triModelC)
+  print(proc.time()-ptm)
+  
+  save(prob.uni, prob.bi, prob.tri,
+       file=file.path(setpath, sprintf("probC_%03.0f.RData", x*1000)))
+  print("Completed")
+}

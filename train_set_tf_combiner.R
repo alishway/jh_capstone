@@ -32,11 +32,11 @@ tfCombiner <- function(full.tf, ngram=1, outpath="training", n1=1, n2=100) {
     full.tf <- tapply(full.tf, names(full.tf), sum)
 
     #temporary save
-#    if (x %in% c(30, 60, 70, 80, 90, 95)) {
-#      print("Save temp file")
-#      save(full.tf, file = file.path(outpath, sprintf("tempfile_%03.0f_ngram%d", x, ngram)))
-#      print(proc.time()-ptm)
-#    }
+    if (x %in% c(10, 30, 50, 70, 90)) {
+      print("Save temp file")
+      save(full.tf, file = file.path(outpath, sprintf("tempfile_%03.0f_ngram%d", x, ngram)))
+      print(proc.time()-ptm)
+    }
 
     print(proc.time()-ptm)
     
@@ -69,24 +69,24 @@ tfCombinerBuild <- function(path="training", train.pct=seq(.7, .9, .05)) {
     outpath <- file.path(path, sprintf("%03.0f", x*100))
     
     #due to memory drain, do tf1, 2, 3, and 4 one at a time
-    full.tf1 <- compTFCombiner(full.tf1, 1, outpath)
-    if (timing) print(proc.time()-ptm)
-    save(full.tf1, file = file.path(outpath, "tf1_full.RData"))
-    rm(full.tf1)
-    gc()
-    if (timing) print(proc.time()-ptm)
+#    full.tf1 <- compTFCombiner(full.tf1, 1, outpath)
+#    if (timing) print(proc.time()-ptm)
+#    save(full.tf1, file = file.path(outpath, "tf1_full.RData"))
+#    rm(full.tf1)
+#    gc()
+#    if (timing) print(proc.time()-ptm)
     
-    full.tf2 <- compTFCombiner(full.tf2, 2, outpath)
-    if (timing) print(proc.time()-ptm)
-    save(full.tf2, file = file.path(outpath, "tf2_full.RData"))
-    rm(full.tf2)
-    gc()
-    if (timing) print(proc.time()-ptm)
+#    full.tf2 <- compTFCombiner(full.tf2, 2, outpath)
+#    if (timing) print(proc.time()-ptm)
+#    save(full.tf2, file = file.path(outpath, "tf2_full.RData"))
+#    rm(full.tf2)
+#    gc()
+#    if (timing) print(proc.time()-ptm)
     
-    for (y in 1:4) {
+    for (y in 1:5) {
       full.tf3 <- numeric(0)
       print(y)
-      full.tf3 <- compTFCombiner(full.tf3, 3, outpath, y*25-24, y*25)
+      full.tf3 <- compTFCombiner(full.tf3, 3, outpath, y*20-19, y*20)
       if (timing) print(proc.time()-ptm)
       save(full.tf3, file = file.path(outpath, sprintf("tf3_full_%d.RData", y)))
       rm(full.tf3)

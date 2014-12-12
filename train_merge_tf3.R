@@ -8,7 +8,7 @@ source('~/GitHub/jh_capstone/JHCap_lib.R')
 outpath <- "training/070"
 combi.tf3 <- numeric(0)
 
-for (x in 1:4) {
+for (x in 1:5) {
   print(x)
   ptm <- proc.time()  # start timer
   load(file.path(outpath, paste0("tf3_full_", x, ".RData")))

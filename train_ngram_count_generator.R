@@ -6,15 +6,15 @@ enableJIT(3)  # to force compile even nested functions
 
 source('~/GitHub/jh_capstone/predict_lib.R')
 
-outpath <- "training/dictionaries"
+outpath <- "training/070/dictionaries"
 reload.tf <- TRUE
 
 ptm <- proc.time()
 compNgramSeqCount <- cmpfun(ngramSeqCount)
 print(proc.time()-ptm)
 
-#coverage <- c(seq(.7, .8, .1), .9, .95, .99)  # 1 is 100%
-coverage <- .7
+coverage <- c(seq(.7, .95, .05), .99)  # 1 is 100%
+#coverage <- .7
 
 for (x in coverage) {
   print(x)

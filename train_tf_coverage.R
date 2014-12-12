@@ -8,7 +8,7 @@ source('~/GitHub/jh_capstone/JHCap_lib.R')
 sourcepath <- "training/070"
 outpath <- "training/070/dictionaries"
 
-reloadFlag =FALSE  # switch off to FALSE to save time if this has been run earlier
+reloadFlag <- FALSE  # switch off to FALSE to save time if this has been run earlier
 
 if (reloadFlag) {
   print("Reloading")
@@ -29,12 +29,10 @@ if (reloadFlag) {
   full.tf2 <- full.tf2[1:cf2]
   
   full.tf3 <- sort(full.tf3, decreasing=TRUE)
-  cf3 <- length(full.tf3) - sum(full.tf3 == 1)
-  full.tf3 <- full.tf3[1:cf3]
+  #no removal of singleton as full.tf3 is already without singleton, see merge_tf3.R
   
   full.tf4 <- sort(full.tf4, decreasing=TRUE)
-  cf4 <- length(full.tf4) - sum(full.tf4 == 1)
-  full.tf4 <- full.tf4[1:cf4]
+  #no removal of singleton as full.tf4 is already without singleton, see merge_tf4.R
   
   print("sorting done")
 }
@@ -47,7 +45,8 @@ trimTF <- function (tf, coverage) {
   return (tf[1:cf])
 }
 
-coverage <- c(seq(.6, .8, .1), seq(.9, .99, .01))  # 1 is 100%
+#coverage <- c(.7, .75, .8, .85, .9)  # 1 is 100%
+coverage <- c(.95, .99)
 
 for (x in coverage) {
   print(x)
@@ -60,6 +59,6 @@ for (x in coverage) {
   print("tf3 trimmed")
   print(system.time(tf4 <- trimTF(full.tf4, x)))
   print("tf4 trimmed")
-  print(system.time(save(tf1, tf2, tf3, tf4
+  print(system.time(save(tf1, tf2, tf3, tf4,
             file=file.path(outpath, sprintf("tf_%03.0f.RData", x*1000)))))
 }
