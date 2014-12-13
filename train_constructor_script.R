@@ -9,8 +9,8 @@
 
 #source('~/GitHub/jh_capstone/train_tf_coverage.R')
 
-#source('~/GitHub/jh_capstone/train_ngram_count_generator.R')
+source('~/GitHub/jh_capstone/train_ngram_count_generator.R')
 
-#source('~/GitHub/jh_capstone/build_probtable.R')
+source('~/GitHub/jh_capstone/build_probtable.R')
 
-source('~/GitHub/jh_capstone/create_holdout_set.R')
+#source('~/GitHub/jh_capstone/create_holdout_set.R')

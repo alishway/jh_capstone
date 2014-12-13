@@ -39,7 +39,10 @@ for (x in coverage) {
   print(proc.time()-ptm)
   save(triModelC, file=file.path(outpath, sprintf("trigramC_%03.0f.RData", x*1000)))
   print(proc.time()-ptm)
-  
+
+#  load(file.path(outpath, sprintf("unigramC_%03.0f.RData", x*1000)))
+#  load(file.path(outpath, sprintf("trigramC_%03.0f.RData", x*1000)))
+
   save(uniModelC, biModelC, triModelC, 
        file=file.path(outpath, sprintf("ngramC_%03.0f.RData", x*1000)))
 }

@@ -177,7 +177,8 @@ ngramSeqCount <- function(tf2) {
 
   if (timing) print(proc.time()-ptm)  #6
   
-  counts <- sparseMatrix(trow, tcol, x=as.vector(tf2))
+  counts <- sparseMatrix(trow, tcol, x=as.vector(tf2),
+                         dims=c(length(n.tf1), length(n.tf1)))
   if (timing) print(proc.time()-ptm)  #7
   
   if (timing) print("Complete")

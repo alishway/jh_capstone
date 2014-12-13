@@ -37,6 +37,7 @@ for (x in coverage) {
     load(file.path(setpath, sprintf("ngramC_%03.0f.RData", x*1000)))
     print(proc.time()-ptm)
   }
+
   
   ptm <- proc.time()
   prob.uni <- buildProbNgram(uniModelC)
