@@ -15,6 +15,7 @@ print(proc.time()-ptm)
 
 coverage <- c(seq(.7, .95, .05), .99)  # 1 is 100%
 #coverage <- .7
+coverage <- 1
 
 for (x in coverage) {
   print(x)

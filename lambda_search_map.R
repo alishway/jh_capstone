@@ -104,9 +104,40 @@ train.size <- .7
   if (reload.holdout) {
     print("reload holdout")
     load(file.path(setpath, "target_words_holdout.RData"))
-    print(proc.time()-ptm)
+    print(proc.time()-ptm)  #1
   }
-  for (x in coverage) {
+
+  #prep holdout words
+  all.phr <- strsplit(target.holdout$phrase, " ")
+  a.len <- sapply(all.phr, length)
+  print(proc.time()-ptm)  #2
+  
+  ### Use only those with phrase length of at least 3 words to train, otherwise it will skew against trigrams
+  #phr.idx <- a.len > 2
+  phr.idx <- seq(length(a.len))
+  phr <- strsplit(target.holdout$phrase[phr.idx], " ")
+  len <- a.len[phr.idx]
+  
+  pre.uni <- mapply("[", phr, len)
+  post.uni <- target.holdout$target[phr.idx]
+  print(proc.time()-ptm)  #3
+
+  #use mapply instead of paste to handle empty characters better
+  pre.bi <- mapply(paste, mapply("[", phr, len-1), pre.uni)
+  post.bi <- paste(pre.uni, post.uni)
+  print(proc.time()-ptm)  #4
+  
+  pre.tri <- mapply(paste, mapply("[", phr, len-2), pre.bi)
+  post.tri <- paste(pre.bi, post.uni)
+  print(proc.time()-ptm)  #5
+  
+  #remove all n-grams with less than n tokens; marked by starting with space
+  pre.bi <- gsub("^ .+", "", pre.bi)
+  pre.tri <- gsub("^ .+", "", pre.tri)
+  post.tri <- gsub("^ .+", "", post.tri)
+  print(proc.time()-ptm)  #6
+
+for (x in coverage) {
     print(x)
     ptm <- proc.time()
 
@@ -120,117 +151,61 @@ train.size <- .7
     prob.uni$prob <- prob.uni$prob / 255
     prob.bi$prob <- prob.bi$prob / 255
     prob.tri$prob <- prob.tri$prob / 255
-    
-    phr <- strsplit(target.holdout$phrase, " ")
-    len <- sapply(phr, length)
+
+    pre.uni.i <- parSapply(cl, pre.uni, compProbIdx, prob=prob.uni)
     print(proc.time()-ptm)  #2
     
-    pre.uni <- mapply("[", phr, len)
-    post.uni <- target.holdout$target
-    print(proc.time()-ptm)  #3
-    
-    pre.uni.i <- parSapply(cl, pre.uni, compProbIdx, prob=prob.uni)
-    print(proc.time()-ptm)  #4
-    
     post.uni.i <- parSapply(cl, post.uni, compProbIdx, prob=prob.uni)
-    print(proc.time()-ptm)  #5
+    print(proc.time()-ptm)  #3
     
     output.y <- pre.uni.i!=0 & post.uni.i!=0
     pr.uni <- numeric(length(pre.uni.i))
     pr.uni[output.y] <- prob.uni$prob[cbind(pre.uni.i, post.uni.i)[output.y, ]]
-    # retrieve probability for all pairs of pre- and post- unigram
-#    pr.uni <- mapply(compProbVal, pre.uni.i, post.uni.i,
-#                     MoreArgs = list(prob = prob.uni), USE.NAMES=FALSE)
-#    pr.uni <- clusterMap(cl, compProbVal, pre.uni.i, post.uni.i,
-#                         MoreArgs = list(prob = prob.uni), USE.NAMES=FALSE)
-    print(proc.time()-ptm)  #6
-#    rm(pre.uni.i, post.uni.i, output.y)
+    print(proc.time()-ptm)  #4
     
-    #use mapply instead of paste to handle empty characters better
-    pre.bi <- mapply(paste, mapply("[", phr, len-1), pre.uni)
-    post.bi <- paste(pre.uni, post.uni)
-    print(proc.time()-ptm)  #7
-    
-    pre.tri <- mapply(paste, mapply("[", phr, len-2), pre.bi)
-    post.tri <- paste(pre.bi, post.uni)
-    print(proc.time()-ptm)  #8
 
-#    #remove to save memory
-#    rm(phr)
-#    gc()
-    
-    #remove all n-grams with less than n tokens; marked by starting with space
-    pre.bi <- gsub("^ .+", "", pre.bi)
-    pre.tri <- gsub("^ .+", "", pre.tri)
-    post.tri <- gsub("^ .+", "", post.tri)
-    print(proc.time()-ptm)  #9
-
-    #remove to save memory
-#    rm(post.uni, pre.uni)
-#    gc()
-
-    
     # retrieve probability for all pairs of pre- and post- bigram
+    print("bigram")
     pre.bi.i <- parSapply(cl, pre.bi, compProbIdx, prob=prob.bi)
-    print(proc.time()-ptm)  #10
+    print(proc.time()-ptm)  #5
     
     post.bi.i <- parSapply(cl, post.bi, compProbIdx, prob=prob.bi)
-    print(proc.time()-ptm)  #11
+    print(proc.time()-ptm)  #6
 
     output.y <- pre.bi.i!=0 & post.bi.i!=0
     pr.bi <- numeric(length(pre.bi))
     pr.bi[output.y] <- prob.bi$prob[cbind(pre.bi.i, post.bi.i)[output.y, ]]
-#    pr.bi <- mapply(compProbVal, pre.bi.i, post.bi.i,
-#                    MoreArgs = list(prob = prob.bi), USE.NAMES=FALSE)
-#   pr.bi <- clusterMap(cl, compProbVal, pre.bi.i, post.bi.i,
-#                    MoreArgs = list(prob = prob.bi), USE.NAMES=FALSE)
-    print(proc.time()-ptm)  #12
-
-#    rm(pre.bi.i, post.bi.i)
-
-    #remove to save memory
-#    rm(pre.bi, post.bi)
-#    gc()
+    print(proc.time()-ptm)  #7
     
     # retrieve probability for all pairs of pre- and post- trigram
+    print("trigram")
     pre.tri.i <- parSapply(cl, pre.tri, compProbIdx, prob=prob.tri)
-    print(proc.time()-ptm)  #13
+    print(proc.time()-ptm)  #8
     
     post.tri.i <- parSapply(cl, post.tri, compProbIdx, prob=prob.tri)
-    print(proc.time()-ptm)  #14
+    print(proc.time()-ptm)  #9
 
     output.y <- pre.tri.i!=0 & post.tri.i!=0
     pr.tri <- numeric(length(pre.tri))
     pr.tri[output.y] <- prob.tri$prob[cbind(pre.tri.i, post.tri.i)[output.y, ]]
-#    pr.tri <- mapply(compProbVal, pre.tri.i, post.tri.i,
-#                     MoreArgs = list(prob = prob.tri), USE.NAMES=FALSE)
-#   pr.tri <- clusterMap(cl, compProbVal, pre.tri.i, post.tri.i,
-#                     MoreArgs = list(prob = prob.tri), USE.NAMES=FALSE)
-    print(proc.time()-ptm)  #15
-
-    #remove to save memory
-#    rm(pre.tri.i, post.tri.i)
-#    rm(pre.tri, post.tri)
-#    rm(prob.uni, prob.bi, prob.tri)
-#    gc()
-    print(proc.time()-ptm)  #16
+    print(proc.time()-ptm)  #10
 
     #combine all ngram probability to cross multiply with lambda
     pr.all <- rbind(pr.uni, pr.bi, pr.tri)
     
     # create all combination of l1*p1 + l2*p2 + l3*p3
     lambda.sum <- do.call(rbind, parLapply(cl, as.data.frame(t(lambda.set)),
-                                        function (x) {return(colSums(x * pr.all))}))
-    print(proc.time()-ptm)  #17
+                                        function (x, p) {return(colSums(x * p))}, pr.all))
+    print(proc.time()-ptm)  #11
     
     lambda.sigma <- rowSums(lambda.sum)
 
     save(pr.uni, pr.bi, pr.tri, lambda.sum, lambda.set, lambda.sigma,
      file=file.path(setpath, sprintf("dictionaries/lambda_table_C%03.0f.RData", x*1000)))
 
-    #save(pr.uni, pr.bi, pr.tri,
-    #     file=file.path(setpath, sprintf("dictionaries/lambda_table_C%03.0f.RData", x*1000)))
-    print(proc.time()-ptm)  #18
+#    save(pr.uni, pr.bi, pr.tri, pr.all,
+#         file=file.path(setpath, sprintf("dictionaries/lambda_table_C%03.0f.RData", x*1000)))
+    print(proc.time()-ptm)  #12
     
     print("Completed")
   }
