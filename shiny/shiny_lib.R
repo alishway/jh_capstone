@@ -1,6 +1,23 @@
 require(Matrix)
 
-#load("probidxC_700.RData")
+load("probidxC_700.RData")
+vocab.all <- list(vocab)
+pr.uni.all <- list(pr.uni)
+pr.bi.all <- list(pr.bi)
+pr.tri.all <- list(pr.tri)
+
+load("probidxC_750.RData")
+vocab.all[[length(vocab.all)+1]] <- vocab
+pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
+pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
+pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri
+
+load("probidxC_800.RData")
+vocab.all[[length(vocab.all)+1]] <- vocab
+pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
+pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
+pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri
+
 
 lambda.set <- c(.1, .3, .6)
 
@@ -128,6 +145,11 @@ probTrip <- function(phrase) {
 #####
 # convenience function for predicting a word
 #####
-predWord <- function(phrase) {
+predWord <- function(phrase, key) {
+  assign("vocab", vocab.all[[key]], envir=.GlobalEnv)
+  assign("pr.uni", pr.uni.all[[key]], envir=.GlobalEnv)
+  assign("pr.bi", pr.bi.all[[key]], envir=.GlobalEnv)
+  assign("pr.tri", pr.tri.all[[key]], envir=.GlobalEnv)
+
   vocab[probTrip(phrase)$idx[1]]
 }
