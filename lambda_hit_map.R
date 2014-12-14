@@ -26,44 +26,6 @@ lambdaComb <- function(a=0, b=1, x=.5, d=3, l=1) {
   return(m)
 }
 
-###
-# convenience function for cutting a phrase to length for n-gram model
-# returning the preceding ngram and the following ngram
-###
-cutPhrase <- function(phrase, n) {
-  words <- unlist(strsplit(phrase, " "))
-  len <- length(words)
-  if (len <= n) return(list())  # not long enough for ngram, need at least n+1 words
-  
-  pre <- paste(words[(len-n):(len-1)], collapse=" ")
-  post <- paste(words[(len-n+1):len], collapse=" ")
-  
-  return(list(pre=pre, post=post))
-}
-compCutPhrase <- cmpfun(cutPhrase)
-
-###
-# convenience function for checking probability of a n-gram model, without error checking
-###
-chkMod <- function(preterm, postterm, model) {
-  pre <- which(model$terms==preterm)
-  post <- which(model$terms==postterm)
-  
-  return(model$prob[pre, post])
-}
-compChkMod <- cmpfun(chkMod)
-
-###
-# convenience function for checking probability of a trigram model
-###
-chkTri <- function(phrase, tri=prob.tri) {
-  terms <- cutPhrase(phrase, 3)
-  if (length(terms)==0) return(0)  # if too short for trigram
-  pre <- which(tri$terms==terms$pre)
-  post <- which(tri$terms==terms$post)
-  
-  return(tri$prob[pre, post])
-}
 
 ###
 # convenience function for checking index of an ngram in the model, for use in apply
@@ -75,18 +37,6 @@ probIdx <- function (x, prob) {
   return(idx)
 }
 compProbIdx <- cmpfun(probIdx)
-
-
-###
-# convenience function for checking probability of an ngram-pair in the model, for use in apply
-###
-probVal <- function (x, y, prob) {
-  val <- prob$prob[x, y]
-  if (length(val) == 0) val <- 0
-  names(val) <- NULL  # save memory
-  return(val)
-}
-compProbVal <- cmpfun(probVal)
 
 reload.prob <- TRUE
 reload.holdout <- TRUE
@@ -152,10 +102,10 @@ for (x in coverage) {
     prob.bi$prob <- prob.bi$prob / 255
     prob.tri$prob <- prob.tri$prob / 255
 
-    pre.uni.i <- parSapply(cl, pre.uni, compProbIdx, prob=prob.uni)
+    pre.uni.i <- parSapply(cl, pre.uni, compProbIdx, prob=prob.uni, USE.NAMES=FALSE)
     print(proc.time()-ptm)  #2
     
-    post.uni.i <- parSapply(cl, post.uni, compProbIdx, prob=prob.uni)
+    post.uni.i <- parSapply(cl, post.uni, compProbIdx, prob=prob.uni, USE.NAMES=FALSE)
     print(proc.time()-ptm)  #3
     
     output.y <- pre.uni.i!=0 & post.uni.i!=0
@@ -194,9 +144,12 @@ for (x in coverage) {
     pr.all <- rbind(pr.uni, pr.bi, pr.tri)
     
     # create all combination of l1*p1 + l2*p2 + l3*p3
-    lambda.sum <- do.call(rbind, parLapply(cl, as.data.frame(t(lambda.set)),
+    lambda.sum.target <- do.call(rbind, parLapply(cl, as.data.frame(t(lambda.set)),
                                         function (x, p) {return(colSums(x * p))}, pr.all))
     print(proc.time()-ptm)  #11
+
+    lambda.sum.options <-  do.call(rbind, parLapply(cl, as.data.frame(t(lambda.set)),
+                                          function (x, p) {return(colSums(x * p))}, pr.opt))
     
     lambda.sigma <- rowSums(lambda.sum)
 

@@ -8,7 +8,7 @@ source('~/GitHub/jh_capstone/JHCap_lib.R')
 sourcepath <- "training/070"
 outpath <- "training/070/dictionaries"
 
-reloadFlag <- FALSE  # switch off to FALSE to save time if this has been run earlier
+reloadFlag <- TRUE  # switch off to FALSE to save time if this has been run earlier
 
 if (reloadFlag) {
   print("Reloading")
@@ -46,7 +46,8 @@ trimTF <- function (tf, coverage) {
 }
 
 #coverage <- c(.7, .75, .8, .85, .9)  # 1 is 100%
-coverage <- c(.95, .99)
+#coverage <- c(.95, .99)
+coverage <- 1
 
 for (x in coverage) {
   print(x)
