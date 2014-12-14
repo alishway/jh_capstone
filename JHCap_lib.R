@@ -135,7 +135,11 @@ coordTF <- function(bigterm, termlist) {
 # and the list of terms for the row and col of sparseMatrix
 ####
 ngramSeqCount <- function(tf2) {
-  timing <- FALSE  # turn TRUE for time bottleneck debugging
+  timing <- TRUE  # turn TRUE for time bottleneck debugging
+  
+  #setup parallel processing
+  require(parallel)
+  cl <- makePSOCKcluster(4)
   
   if (timing) print("Start")
   ptm <- proc.time()
@@ -145,33 +149,34 @@ ngramSeqCount <- function(tf2) {
   
   
   # construct possible n terms from n+1 terms
-  #n.tf1 <- sort(unique(unlist(strsplit(n.tf2, " "))))
   u.tf2 <- strsplit(n.tf2, " ")
   if (timing) print(proc.time()-ptm)  #2
   
   len <- length(u.tf2[[1]])  # assumption is all have same number of chars as first element
-  if (timing) print(proc.time()-ptm)  #3
   
   if (len < 2) {
     print("term frequencies have to be of terms of at least 2 words (bigram) length")
     return(NA)
   }
   
-  n.tf1 <- do.call(c, lapply(u.tf2, function (x)
-  {return(c(paste(x[1:(len-1)], collapse = " "),
-            paste(x[2:len], collapse = " ")))}))
-  if (timing) print(proc.time()-ptm)  #4
-  
-  n.tf1 <- sort(unique(n.tf1))
-  if (timing) print(proc.time()-ptm)  #5
-  
   #map all the "coordinates" of preceding and following terms
 
-  wn.tf2 <- strsplit(n.tf2, " ")
-  len <- length(wn.tf2[[1]])  # Assumption: all elements in list have same length
-  term1 <- sapply(wn.tf2, function(x) paste(x[1:(len-1)], collapse=" "))
-  term2 <- sapply(wn.tf2, function(x) paste(x[2:len], collapse=" "))
+#  wn.tf2 <- strsplit(n.tf2, " ")
+#  len <- length(wn.tf2[[1]])  # Assumption: all elements in list have same length
+  term1 <- parSapply(cl, u.tf2, function(x) paste(x[1:(len-1)], collapse=" "))
+  if (timing) print(proc.time()-ptm)  #3
+  term2 <- parSapply(cl, u.tf2, function(x) paste(x[2:len], collapse=" "))
+#  term1 <- sapply(wn.tf2, function(x) paste(x[1:(len-1)], collapse=" "))
+#  term2 <- sapply(wn.tf2, function(x) paste(x[2:len], collapse=" "))
+
+#  n.tf1 <- do.call(c, lapply(u.tf2, function (x)
+#  {return(c(paste(x[1:(len-1)], collapse = " "),
+#            paste(x[2:len], collapse = " ")))}))
+  if (timing) print(proc.time()-ptm)  #4
   
+  n.tf1 <- sort(unique(c(term1, term2)))
+  if (timing) print(proc.time()-ptm)  #5
+
   trow <- match(term1, n.tf1)
   tcol <- match(term2, n.tf1)
 
@@ -182,6 +187,9 @@ ngramSeqCount <- function(tf2) {
   if (timing) print(proc.time()-ptm)  #7
   
   if (timing) print("Complete")
+  
+  #stop parallel processing
+  stopCluster(cl)
   
   #return as list of term list and sparsematrix
   return(list(terms = n.tf1,

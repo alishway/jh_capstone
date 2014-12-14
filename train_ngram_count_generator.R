@@ -7,7 +7,7 @@ enableJIT(3)  # to force compile even nested functions
 source('~/GitHub/jh_capstone/predict_lib.R')
 
 outpath <- "training/070/dictionaries"
-reload.tf <- TRUE
+reload.tf <- FALSE
 
 ptm <- proc.time()
 compNgramSeqCount <- cmpfun(ngramSeqCount)
@@ -25,6 +25,11 @@ for (x in coverage) {
     load(file.path(outpath, sprintf("tf_%03.0f.RData", x*1000)), .GlobalEnv)
     print(proc.time()-ptm)
   }
+  
+  tf2 <- tf2[!is.na(tf2)]
+  tf3 <- tf3[!is.na(tf3)]
+  tf4 <- tf4[!is.na(tf4)]
+  
   ptm <- proc.time()
   uniModelC <- compNgramSeqCount(tf2)
   print(proc.time()-ptm)

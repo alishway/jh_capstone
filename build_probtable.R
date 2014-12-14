@@ -28,7 +28,8 @@ buildProbNgram <- function (model, d = .75) {
 
 reload.tf <- TRUE
 setpath <- "training/070/dictionaries"
-coverage <- c(seq(.7, .95, .05), .99) 
+#coverage <- c(seq(.7, .95, .05), .99) 
+coverage <- 1
 
 for (x in coverage) {
   print(x)
