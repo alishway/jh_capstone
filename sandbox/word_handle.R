@@ -1,16 +1,19 @@
 require(Matrix)
-#vocab <- c("i", "love", "you", "we", "me", "read", "book", "movie")
+
+#load("probidxC_700.RData")
+
 lambda.set <- c(.1, .3, .6)
 
 
 ####
 # convenience function to unlist integers while retaining length
-# leaving empty cells as NA
+# leaving empty cells as 0
 ####
 deList <- function (n) {
-  return(sapply(n, `length<-`, 1))
+  return(unlist(replace(n, !sapply(n, length), 0)))
 #  return(sapply(n, function(x) {ifelse(length(x)==0, 0, x)}))
 }
+
 
 ####
 # reduce phrase into three words, padding 0 in front if fewer than 3
@@ -43,6 +46,8 @@ index <- function(word) {
 # Assumption: vocab is loaded global all the time
 #####
 decompose <- function(phrase) {
+  phrase <- tolower(phrase)
+  phrase <- gsub("[[:punct:]]", "", phrase)
   words <- reduce(phrase)
   return(sapply(as.list(words), index))
 }
@@ -58,7 +63,7 @@ decompose <- function(phrase) {
 ####
 listNext <- function(inp) {
   uni.idx <- which(pr.uni$terms == inp[3])
-  pos.idx.uni <- which(pr.uni$prob[uni.idx,] != 0)
+  pos.idx.uni <- pr.uni$terms[which(pr.uni$prob[uni.idx,] != 0)]
   
   bi.idx <- which((pr.bi$terms[, 1] == inp[2]) & (pr.bi$terms[, 2] == inp[3]))
   pos.idx.bi <- pr.bi$terms[which(pr.bi$prob[bi.idx,] != 0), 2]
@@ -80,34 +85,49 @@ listNext <- function(inp) {
 probTrip <- function(phrase) {
   words <- decompose(phrase)
   preds <- listNext(words)
+  if (length(preds)==0) return(data.frame(idx=25072))   #if no prediction, default to "the"
   len <- length(preds)
-  pred <- data.frame(word=preds,
+  pred <- data.frame(idx=preds, # word=vocab[preds],
                      uni=numeric(len), bi=numeric(len), tri=numeric(len))
   
-  uni.f <- preds %in% pr.uni$terms
-  pred$uni[uni.f] <- pr.uni$prob[which(pr.uni$terms == words[3]),
-                            which(pr.uni$terms %in% preds)]
-  
-#  bi.f <- (pr.bi$terms[, 1] == words[3]) & (pr.bi$terms[, 2] %in% preds)
+  #unigram probabilities
+  uni.c <- deList(sapply(preds, function(x, y) {which(y == x)}, pr.uni$terms))
+  pred$uni[uni.c != 0] <- pr.uni$prob[which(pr.uni$terms == words[3]), uni.c]
+                                 
+
   bi.r <- which((pr.bi$terms[, 1] == words[2]) &
                     (pr.bi$terms[, 2] == words[3]))
-  bi.c <- deList(sapply(pred$word,
-                        function(x, y, z){which((y$terms[, 1] == z[3]) & (y$terms[, 2] == x))},
-                        pr.bi, words))
-#  bi.c <- which((pr.bi$terms[, 1] == words[3]) &
-#                   (pr.bi$terms[, 2] %in% preds))
-  pred$bi[!is.na(bi.c)] <- pr.bi$prob[bi.r, bi.c]
+  if (length(bi.r)) {  #do nothing if no preceding term
+    bi.c <- deList(
+      sapply(preds, function(x, y, z){which((y[, 1] == z[3]) & (y[, 2] == x))},
+             pr.bi$terms, words)
+    )
+    pred$bi[bi.c!=0] <- pr.bi$prob[bi.r, bi.c]
+  }
+
   
-#  tri.f <- (pr.tri$terms[, 1] == words[2]) & (pr.tri$terms[, 2] == words[3]) &
-#           (pr.tri$terms[, 3] %in% preds)
+
   tri.r <- which((pr.tri$terms[, 1] == words[1]) &
                  (pr.tri$terms[, 2] == words[2]) &
                  (pr.tri$terms[, 3] == words[3]))
-  tri.c <- deList(sapply(pred$word,
-                         function(x, y, z){which((y$terms[, 1] == z[3]) & (y$terms[, 2] == x))},
-                         pr.tri, words))
-#  tri.c <- which((pr.tri$terms[, 1] == words[2]) &
-#                 (pr.tri$terms[, 2] == words[3]) &
-#                   (pr.tri$terms[, 3] %in% preds))
-  pred$tri[!is.na(tri.c)] <- pr.tri$prob[tri.r, tri.c]
+  if (length(tri.r)) {  #do nothing if no preceding term
+    tri.c <- deList(
+      sapply(preds, function(x, y, z){
+        which((y[, 1] == z[2]) & y[, 2] == z[3] & (y[, 3] == x))},
+        pr.tri$terms, words)
+    )
+    pred$tri[tri.c!=0] <- pr.tri$prob[tri.r, tri.c]
+  }
+
+
+  pred$l.prob <- colSums(lambda.set*t(pred[, c("uni", "bi", "tri")]))
+
+  return(pred[order(pred$l.prob, decreasing=TRUE),])
+}
+
+#####
+# convenience function for predicting a word
+#####
+predWord <- function(phrase) {
+  vocab[probTrip(phrase)$idx[1]]
 }
