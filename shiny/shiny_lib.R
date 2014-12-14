@@ -20,9 +20,10 @@ if (livehost) {
   pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
   pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
   pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri  
+} else {
+  load("training/070/dictionaries/probidxC_700.RData")  
 }
 
-load("probidxC_700.RData")
 
 lambda.set <- c(.1, .3, .6)
 
