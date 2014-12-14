@@ -1,23 +1,28 @@
 require(Matrix)
 
+livehost <- FALSE
+
+if (livehost) {
+  load("probidxC_700.RData")
+  vocab.all <- list(vocab)
+  pr.uni.all <- list(pr.uni)
+  pr.bi.all <- list(pr.bi)
+  pr.tri.all <- list(pr.tri)
+  
+  load("probidxC_750.RData")
+  vocab.all[[length(vocab.all)+1]] <- vocab
+  pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
+  pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
+  pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri
+  
+  load("probidxC_800.RData")
+  vocab.all[[length(vocab.all)+1]] <- vocab
+  pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
+  pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
+  pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri  
+}
+
 load("probidxC_700.RData")
-vocab.all <- list(vocab)
-pr.uni.all <- list(pr.uni)
-pr.bi.all <- list(pr.bi)
-pr.tri.all <- list(pr.tri)
-
-load("probidxC_750.RData")
-vocab.all[[length(vocab.all)+1]] <- vocab
-pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
-pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
-pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri
-
-load("probidxC_800.RData")
-vocab.all[[length(vocab.all)+1]] <- vocab
-pr.uni.all[[length(pr.uni.all)+1]] <- pr.uni
-pr.bi.all[[length(pr.bi.all)+1]] <- pr.bi
-pr.tri.all[[length(pr.tri.all)+1]] <- pr.tri
-
 
 lambda.set <- c(.1, .3, .6)
 
@@ -109,7 +114,8 @@ probTrip <- function(phrase) {
   
   #unigram probabilities
   uni.c <- deList(sapply(preds, function(x, y) {which(y == x)}, pr.uni$terms))
-  pred$uni[uni.c != 0] <- pr.uni$prob[which(pr.uni$terms == words[3]), uni.c]
+  val <- pr.uni$prob[which(pr.uni$terms == words[3]), uni.c]
+  if (length(val)) pred$uni[uni.c != 0] <- val  #don't execute if no result
   
   
   bi.r <- which((pr.bi$terms[, 1] == words[2]) &
@@ -119,7 +125,8 @@ probTrip <- function(phrase) {
       sapply(preds, function(x, y, z){which((y[, 1] == z[3]) & (y[, 2] == x))},
              pr.bi$terms, words)
     )
-    pred$bi[bi.c!=0] <- pr.bi$prob[bi.r, bi.c]
+    val <- pr.bi$prob[bi.r, bi.c]
+    if (length(val)) pred$bi[bi.c!=0] <- val
   }
   
   
@@ -133,7 +140,8 @@ probTrip <- function(phrase) {
         which((y[, 1] == z[2]) & y[, 2] == z[3] & (y[, 3] == x))},
         pr.tri$terms, words)
     )
-    pred$tri[tri.c!=0] <- pr.tri$prob[tri.r, tri.c]
+    val <- pr.tri$prob[tri.r, tri.c]
+    if (length(val)) pred$tri[tri.c!=0] <- val  #don't execute if no result
   }
   
   
@@ -146,10 +154,12 @@ probTrip <- function(phrase) {
 # convenience function for predicting a word
 #####
 predWord <- function(phrase, key) {
-  assign("vocab", vocab.all[[key]], envir=.GlobalEnv)
-  assign("pr.uni", pr.uni.all[[key]], envir=.GlobalEnv)
-  assign("pr.bi", pr.bi.all[[key]], envir=.GlobalEnv)
-  assign("pr.tri", pr.tri.all[[key]], envir=.GlobalEnv)
+  if (livehost) {
+    assign("vocab", vocab.all[[key]], envir=.GlobalEnv)
+    assign("pr.uni", pr.uni.all[[key]], envir=.GlobalEnv)
+    assign("pr.bi", pr.bi.all[[key]], envir=.GlobalEnv)
+    assign("pr.tri", pr.tri.all[[key]], envir=.GlobalEnv)
+  }
 
   vocab[probTrip(phrase)$idx[1]]
 }
