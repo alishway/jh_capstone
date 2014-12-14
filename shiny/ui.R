@@ -11,14 +11,14 @@ shinyUI(fluidPage(
     ),
     mainPanel(
       fluidRow(
-        textInput("phrase", label = h3("Text input"), value = "Enter text..."),
+        textInput("phrase", label = h3("Text input"), value=NULL),
         submitButton('Submit'),
         hr()
       ),
-      #verbatimTextOutput("value"),
 
       fluidRow(
-        verbatimTextOutput("value"),
+#        verbatimTextOutput("len"),
+        verbatimTextOutput("phrase"),
         p("Predicted next word:"),
         br(),
         h3(textOutput("wordPred"))

@@ -11,7 +11,7 @@ lambda.set <- c(.1, .3, .6)
 ####
 deList <- function (n) {
   return(unlist(replace(n, !sapply(n, length), 0)))
-#  return(sapply(n, function(x) {ifelse(length(x)==0, 0, x)}))
+  #  return(sapply(n, function(x) {ifelse(length(x)==0, 0, x)}))
 }
 
 
@@ -67,13 +67,13 @@ listNext <- function(inp) {
   
   bi.idx <- which((pr.bi$terms[, 1] == inp[2]) & (pr.bi$terms[, 2] == inp[3]))
   pos.idx.bi <- pr.bi$terms[which(pr.bi$prob[bi.idx,] != 0), 2]
-
+  
   tri.idx <- which((pr.tri$terms[, 1] == inp[1]) & (pr.tri$terms[, 2] == inp[2])
                    & (pr.tri$terms[, 3] == inp[3]))
   pos.idx.tri <- pr.tri$terms[which(pr.tri$prob[tri.idx,] != 0), 3]
   
   return(unique(c(pos.idx.uni, pos.idx.bi, pos.idx.tri)))
-
+  
 }
 
 ####
@@ -93,10 +93,10 @@ probTrip <- function(phrase) {
   #unigram probabilities
   uni.c <- deList(sapply(preds, function(x, y) {which(y == x)}, pr.uni$terms))
   pred$uni[uni.c != 0] <- pr.uni$prob[which(pr.uni$terms == words[3]), uni.c]
-                                 
-
+  
+  
   bi.r <- which((pr.bi$terms[, 1] == words[2]) &
-                    (pr.bi$terms[, 2] == words[3]))
+                  (pr.bi$terms[, 2] == words[3]))
   if (length(bi.r)) {  #do nothing if no preceding term
     bi.c <- deList(
       sapply(preds, function(x, y, z){which((y[, 1] == z[3]) & (y[, 2] == x))},
@@ -104,12 +104,12 @@ probTrip <- function(phrase) {
     )
     pred$bi[bi.c!=0] <- pr.bi$prob[bi.r, bi.c]
   }
-
   
-
+  
+  
   tri.r <- which((pr.tri$terms[, 1] == words[1]) &
-                 (pr.tri$terms[, 2] == words[2]) &
-                 (pr.tri$terms[, 3] == words[3]))
+                   (pr.tri$terms[, 2] == words[2]) &
+                   (pr.tri$terms[, 3] == words[3]))
   if (length(tri.r)) {  #do nothing if no preceding term
     tri.c <- deList(
       sapply(preds, function(x, y, z){
@@ -118,10 +118,10 @@ probTrip <- function(phrase) {
     )
     pred$tri[tri.c!=0] <- pr.tri$prob[tri.r, tri.c]
   }
-
-
+  
+  
   pred$l.prob <- colSums(lambda.set*t(pred[, c("uni", "bi", "tri")]))
-
+  
   return(pred[order(pred$l.prob, decreasing=TRUE),])
 }
 
