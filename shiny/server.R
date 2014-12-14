@@ -1,11 +1,10 @@
 require(shiny)
 
-# TODO: load default dictionaries and probability tables
+source("shiny_lib.R")
+load("~/GitHub/jh_capstone/training/070/probidxC_700.RData")
+
+# DONE: load default dictionaries and probability tables
 # option to think: load optional dictionaries? preload everything?
-
-# DONE: function to convert phrases into term indices for uni, bi, trigram
-
-# TODO: function to generate potential (i.e. non-zero) post-term, in terms of vocab id
 
 # TODO: function to calculate words (i.e. vocab id) probability
 
@@ -16,10 +15,10 @@ shinyServer(
     #})
     words <- reactive({unlist(strsplit(input$phrase, " "))})
     #wordPred <- length(words)
-    #cat(wordPred)
+
     
     # You can access the value of the widget with input$text, e.g.
-    output$value <- renderText({ input$phrase })
-    output$wordPred <- renderText({ length(words())})
+    output$value <- renderText({ length(words()) })
+    output$wordPred <- renderText({ vocab[listNext(decompose(words()))]})
   }  
 )

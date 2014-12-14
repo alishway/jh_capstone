@@ -15,7 +15,6 @@ shinyUI(fluidPage(
         submitButton('Submit'),
         hr()
       ),
-      #verbatimTextOutput("value"),
 
       fluidRow(
         verbatimTextOutput("value"),

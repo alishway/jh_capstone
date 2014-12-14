@@ -9,7 +9,7 @@ lambda.set <- c(.1, .3, .6)
 ####
 deList <- function (n) {
   return(sapply(n, `length<-`, 1))
-#  return(sapply(n, function(x) {ifelse(length(x)==0, 0, x)}))
+  #  return(sapply(n, function(x) {ifelse(length(x)==0, 0, x)}))
 }
 
 ####
@@ -62,13 +62,13 @@ listNext <- function(inp) {
   
   bi.idx <- which((pr.bi$terms[, 1] == inp[2]) & (pr.bi$terms[, 2] == inp[3]))
   pos.idx.bi <- pr.bi$terms[which(pr.bi$prob[bi.idx,] != 0), 2]
-
+  
   tri.idx <- which((pr.tri$terms[, 1] == inp[1]) & (pr.tri$terms[, 2] == inp[2])
                    & (pr.tri$terms[, 3] == inp[3]))
   pos.idx.tri <- pr.tri$terms[which(pr.tri$prob[tri.idx,] != 0), 3]
   
   return(unique(c(pos.idx.uni, pos.idx.bi, pos.idx.tri)))
-
+  
 }
 
 ####
@@ -86,28 +86,28 @@ probTrip <- function(phrase) {
   
   uni.f <- preds %in% pr.uni$terms
   pred$uni[uni.f] <- pr.uni$prob[which(pr.uni$terms == words[3]),
-                            which(pr.uni$terms %in% preds)]
+                                 which(pr.uni$terms %in% preds)]
   
-#  bi.f <- (pr.bi$terms[, 1] == words[3]) & (pr.bi$terms[, 2] %in% preds)
+  #  bi.f <- (pr.bi$terms[, 1] == words[3]) & (pr.bi$terms[, 2] %in% preds)
   bi.r <- which((pr.bi$terms[, 1] == words[2]) &
-                    (pr.bi$terms[, 2] == words[3]))
+                  (pr.bi$terms[, 2] == words[3]))
   bi.c <- deList(sapply(pred$word,
                         function(x, y, z){which((y$terms[, 1] == z[3]) & (y$terms[, 2] == x))},
                         pr.bi, words))
-#  bi.c <- which((pr.bi$terms[, 1] == words[3]) &
-#                   (pr.bi$terms[, 2] %in% preds))
+  #  bi.c <- which((pr.bi$terms[, 1] == words[3]) &
+  #                   (pr.bi$terms[, 2] %in% preds))
   pred$bi[!is.na(bi.c)] <- pr.bi$prob[bi.r, bi.c]
   
-#  tri.f <- (pr.tri$terms[, 1] == words[2]) & (pr.tri$terms[, 2] == words[3]) &
-#           (pr.tri$terms[, 3] %in% preds)
+  #  tri.f <- (pr.tri$terms[, 1] == words[2]) & (pr.tri$terms[, 2] == words[3]) &
+  #           (pr.tri$terms[, 3] %in% preds)
   tri.r <- which((pr.tri$terms[, 1] == words[1]) &
-                 (pr.tri$terms[, 2] == words[2]) &
-                 (pr.tri$terms[, 3] == words[3]))
+                   (pr.tri$terms[, 2] == words[2]) &
+                   (pr.tri$terms[, 3] == words[3]))
   tri.c <- deList(sapply(pred$word,
                          function(x, y, z){which((y$terms[, 1] == z[3]) & (y$terms[, 2] == x))},
                          pr.tri, words))
-#  tri.c <- which((pr.tri$terms[, 1] == words[2]) &
-#                 (pr.tri$terms[, 2] == words[3]) &
-#                   (pr.tri$terms[, 3] %in% preds))
+  #  tri.c <- which((pr.tri$terms[, 1] == words[2]) &
+  #                 (pr.tri$terms[, 2] == words[3]) &
+  #                   (pr.tri$terms[, 3] %in% preds))
   pred$tri[!is.na(tri.c)] <- pr.tri$prob[tri.r, tri.c]
 }
